@@ -5,8 +5,6 @@ using PicEnfermagem.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "AllowedCorsOrigins",
@@ -29,9 +27,7 @@ builder.Services.AddSwagger();
 
 builder.Services.RegisterServices(builder.Configuration);
 
-builder.Services.AddDbContext<ApplicationContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

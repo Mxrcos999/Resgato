@@ -81,11 +81,12 @@ namespace Application.Services.Identity
 
             var user = new ApplicationUser()
             {
-                UserName = userData.Username,
+                UserName = userData.Email,
                 Email = userData.Email,
                 CreateUserDate = DateTime.UtcNow,
                 EmailConfirmed = false,
                 Name = userData.Name,
+                StudentCode = userData.StudentCode
             };
 
             var createdUser = await _userManager.CreateAsync(user, userData.Password);
@@ -97,7 +98,7 @@ namespace Application.Services.Identity
 
         public async Task<DefaultResponse> DeleteUser(LoginUserRequest loginData)
         {
-            var user = await GetUserByEmailOrUsername(loginData.AccessKey);
+            var user = await GetUserByEmailOrUsername(loginData.Email);
 
             var login = await _singInManager.PasswordSignInAsync(user, loginData.Password, false, false);
 
@@ -139,7 +140,7 @@ namespace Application.Services.Identity
 
         public async Task<BaseResponse<LoginUserResponse>> LoginAsync(LoginUserRequest loginData)
         {
-            var user = await GetUserByEmailOrUsername(loginData.AccessKey);
+            var user = await GetUserByEmailOrUsername(loginData.Email);
 
             var login = await _singInManager.PasswordSignInAsync(user, loginData.Password,false, false);
 

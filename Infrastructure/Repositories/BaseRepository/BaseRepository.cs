@@ -4,8 +4,7 @@ using System.Linq.Expressions;
 
 namespace Infrastructure.Repositories.BaseRepository
 {
-    //Definição dos tipos do repositorio generico, o parametro "where", define que ela deve ser do tipo TEntity
-    //E o tipo TEntity deve ser uma classe, observe no arquivo de Ioc
+
     public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class
     {
 
