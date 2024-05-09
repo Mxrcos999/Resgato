@@ -7,6 +7,7 @@ using Application.Dtos.User.Put;
 using Domain.Entitites;
 using Infrastructure.Context;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
@@ -44,25 +45,15 @@ namespace Application.Services.Identity
 
             if (user != null)
             {
-                user.Name = userData.Name ==  null ? user.Name : userData.Name;
+                user.Name = userData.Name == null ? user.Name : userData.Name;
                 user.Email = userData.Email == null ? user.Email : userData.Email;
                 user.UserName = userData.Username == null ? user.UserName : userData.Username;
 
                 var result = await _userManager.UpdateAsync(user);
 
-                if (result.Succeeded)
-                {
-                    response.Success = true;
-                }
-
-                else 
-                {
-                    response.AddErrors(result.Errors.ToList().ConvertAll<string>(item=> item.Description));
-
-                    response.Success = false;
-                }
-
-
+                if (!result.Succeeded)
+                    response.AddErrors(result.Errors.ToList().ConvertAll<string>(item => item.Description));
+            
                 return response;
             }
 
@@ -70,15 +61,12 @@ namespace Application.Services.Identity
             {
                 response.AddError("Faça login novamente e tente mais tarde.");
 
-                response.Success = false;
-
                 return response;
             }
         }
 
         public async Task<DefaultResponse> AddUser(CreateUserRequest userData)
         {
-
             var user = new ApplicationUser()
             {
                 UserName = userData.Email,
@@ -90,8 +78,38 @@ namespace Application.Services.Identity
             };
 
             var createdUser = await _userManager.CreateAsync(user, userData.Password);
+      
+            var defaultResponse = new DefaultResponse();
 
-            var defaultResponse = new DefaultResponse(createdUser.Succeeded);
+            if (!createdUser.Succeeded)
+            {
+                foreach (var error in createdUser.Errors)
+                {
+                    switch (error.Code)
+                    {
+                        case "PasswordRequiresNonAlphanumeric":
+                            defaultResponse.Errors.Add("A senha precisa conter pelo menos um caracter especial - ex( * | ! ).");
+                            break;
+
+                        case "PasswordRequiresDigit":
+                            defaultResponse.Errors.Add("A senha precisa conter pelo menos um número (0 - 9).");
+                            break;
+
+                        case "PasswordRequiresUpper":
+                            defaultResponse.Errors.Add("A senha precisa conter pelo menos um caracter em maiúsculo.");
+                            break;
+
+                        case "DuplicateUserName":
+                            defaultResponse.Errors.Add("O email informado já foi cadastrado!");
+                            break;
+
+                        default:
+                            defaultResponse.Errors.Add("Erro ao criar usuário.");
+                            break;
+                    }
+
+                }
+            }
 
             return defaultResponse;
         }
@@ -102,9 +120,9 @@ namespace Application.Services.Identity
 
             var login = await _singInManager.PasswordSignInAsync(user, loginData.Password, false, false);
 
-            var response = new DefaultResponse(login.Succeeded);
+            var response = new DefaultResponse();
 
-            if (login.Succeeded&&user.Id == _userId)
+            if (login.Succeeded && user.Id == _userId)
             {
                 _userManager.DeleteAsync(user);
 
@@ -123,7 +141,7 @@ namespace Application.Services.Identity
         {
             var user = await _userManager.FindByEmailAsync(email);
 
-            var response = new DefaultResponse(user == null);
+            var response = new DefaultResponse();
 
             if (response.Success)
             {
@@ -142,32 +160,44 @@ namespace Application.Services.Identity
         {
             var user = await GetUserByEmailOrUsername(loginData.Email);
 
-            var login = await _singInManager.PasswordSignInAsync(user, loginData.Password,false, false);
+            var signInResult = await _singInManager.PasswordSignInAsync(user, loginData.Password, false, false);
 
-            var response = new BaseResponse<LoginUserResponse>(login.Succeeded);
-
-            if (login.Succeeded)
+            var response = new BaseResponse<LoginUserResponse>();
+   
+            if (!signInResult.Succeeded)
             {
-                response.Data = new()
+                if (signInResult.IsLockedOut)
                 {
-                    Email = user.Email,
-                    ExpectedExpirationTokenDateTime = DateTime.UtcNow ,  
-                    Name = user.Name,   
-                    Username = user.UserName,
-                    ExpirationTokenTime = _jwtOptions.AccessTokenExpiration,
-                    Token = await CreateToken(user)
-                    
-                };
+                    response.Errors.Add("Esta conta está bloqueada.");
+                }
+                else if (signInResult.IsNotAllowed)
+                {
+                    response.Errors.Add("Esta conta não tem permissão para entrar.");
+                }
+                else if (signInResult.RequiresTwoFactor)
+                {
+                    response.Errors.Add("Confirme seu email.");
+                }
+                else
+                {
+                    response.Errors.Add("Nome de usuário ou senha estão incorretos.");
+                }
 
                 return response;
             }
 
-            else
+            response.Data = new()
             {
-                response.AddError("Senha ou Usuario incorretos.");
+                Email = user.Email,
+                ExpectedExpirationTokenDateTime = DateTime.UtcNow,
+                Name = user.Name,
+                Username = user.UserName,
+                ExpirationTokenTime = _jwtOptions.AccessTokenExpiration,
+                Token = await CreateToken(user)
 
-                return response;
-            }
+            };
+
+            return response;
         }
 
         public async Task<IList<Claim>> GetClaimsAndRoles(ApplicationUser user)
@@ -214,13 +244,13 @@ namespace Application.Services.Identity
             return token;
         }
 
-        public async Task<ApplicationUser> GetUserByEmailOrUsername(string accessKey) 
+        public async Task<ApplicationUser> GetUserByEmailOrUsername(string accessKey)
         {
-                var user = IsValidEmail(accessKey) ?
-                    await _userManager.FindByEmailAsync(accessKey) :
-                    await _userManager.FindByNameAsync(accessKey);
+            var user = IsValidEmail(accessKey) ?
+                await _userManager.FindByEmailAsync(accessKey) :
+                await _userManager.FindByNameAsync(accessKey);
 
-                return user;
+            return user;
         }
 
         public bool IsValidEmail(string email)
@@ -274,30 +304,27 @@ namespace Application.Services.Identity
         {
             var user = await _userManager.FindByNameAsync(email);
 
-            var response = new DefaultResponse(user == null);
+            var response = new DefaultResponse();
 
-            if (response.Success)
-            {
-                return response;
-            }
-
-            else
+            if (!response.Success)
             {
                 response.AddError("Nome de usuário já utilizado.");
 
                 return response;
             }
+
+            return response;
         }
 
         public async Task<DefaultResponse> ChangePasswordAsync(ChangePasswordRequest changePasswordData)
         {
             var user = await _userManager.FindByIdAsync(_userId);
 
-            var changedPassword = await _userManager.ChangePasswordAsync(user, changePasswordData.Passowrd,changePasswordData.NewPassword);
+            var changedPassword = await _userManager.ChangePasswordAsync(user, changePasswordData.Passowrd, changePasswordData.NewPassword);
 
-            var response = new DefaultResponse(changedPassword.Succeeded);
+            var response = new DefaultResponse();
 
-            if(response.Success)
+            if (response.Success)
             {
                 return response;
             }
