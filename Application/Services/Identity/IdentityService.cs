@@ -65,16 +65,66 @@ namespace Application.Services.Identity
             }
         }
 
-        public async Task<DefaultResponse> AddUser(CreateUserRequest userData)
+        public async Task<DefaultResponse> AddStudentUser(CreateStudentUserRequest userData)
         {
             var user = new ApplicationUser()
             {
                 UserName = userData.Email,
                 Email = userData.Email,
+                Type = "Student",
                 CreateUserDate = DateTime.UtcNow,
                 EmailConfirmed = false,
                 Name = userData.Name,
                 StudentCode = userData.StudentCode
+            };
+
+            var createdUser = await _userManager.CreateAsync(user, userData.Password);
+      
+            var defaultResponse = new DefaultResponse();
+
+            if (!createdUser.Succeeded)
+            {
+                foreach (var error in createdUser.Errors)
+                {
+                    switch (error.Code)
+                    {
+                        case "PasswordRequiresNonAlphanumeric":
+                            defaultResponse.Errors.Add("A senha precisa conter pelo menos um caracter especial - ex( * | ! ).");
+                            break;
+
+                        case "PasswordRequiresDigit":
+                            defaultResponse.Errors.Add("A senha precisa conter pelo menos um número (0 - 9).");
+                            break;
+
+                        case "PasswordRequiresUpper":
+                            defaultResponse.Errors.Add("A senha precisa conter pelo menos um caracter em maiúsculo.");
+                            break;
+
+                        case "DuplicateUserName":
+                            defaultResponse.Errors.Add("O email informado já foi cadastrado!");
+                            break;
+
+                        default:
+                            defaultResponse.Errors.Add("Erro ao criar usuário.");
+                            break;
+                    }
+
+                }
+            }
+
+            return defaultResponse;
+        }
+   
+        public async Task<DefaultResponse> AddProfessorUser(CreateProfessorUserRequest userData)
+        {
+            var user = new ApplicationUser()
+            {
+                UserName = userData.Email,
+                Type = "Professor",
+                Email = userData.Email,
+                CreateUserDate = DateTime.UtcNow,
+                EmailConfirmed = false,
+                Name = userData.Name,
             };
 
             var createdUser = await _userManager.CreateAsync(user, userData.Password);

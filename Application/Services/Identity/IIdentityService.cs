@@ -11,7 +11,8 @@ namespace Application.Services.Identity
     public interface IIdentityService
     {
         Task<BaseResponse<LoginUserResponse>> LoginAsync(LoginUserRequest loginData);
-        Task<DefaultResponse> AddUser(CreateUserRequest userData);
+        Task<DefaultResponse> AddStudentUser(CreateStudentUserRequest userData);
+        Task<DefaultResponse> AddProfessorUser(CreateProfessorUserRequest userData);
         Task<DefaultResponse> DeleteUser(LoginUserRequest email);
         Task<DefaultResponse> PutUser(PutUserRequest userData);
         Task<DefaultResponse> ValidateUsernameAsync(string email);
