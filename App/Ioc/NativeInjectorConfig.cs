@@ -1,5 +1,6 @@
 ﻿
 using App.Extensions;
+using Application.Services;
 using Application.Services.Identity;
 using Domain.Entitites;
 using Infrastructure.Context;
@@ -19,6 +20,7 @@ namespace ASP.NET_Core_Template.Ioc
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
             services.AddScoped<IIdentityService, IdentityService>();
+            services.AddScoped<IPreventionService, PreventionService>();
 
             services.AddCors(options =>
             {

@@ -75,7 +75,8 @@ namespace Application.Services.Identity
                 CreateUserDate = DateTime.UtcNow,
                 EmailConfirmed = false,
                 Name = userData.Name,
-                StudentCode = userData.StudentCode
+                StudentCode = userData.StudentCode,
+                Budget = 10000m
             };
 
             var createdUser = await _userManager.CreateAsync(user, userData.Password);
@@ -125,6 +126,7 @@ namespace Application.Services.Identity
                 CreateUserDate = DateTime.UtcNow,
                 EmailConfirmed = false,
                 Name = userData.Name,
+                Budget = 10000m
             };
 
             var createdUser = await _userManager.CreateAsync(user, userData.Password);
@@ -385,6 +387,17 @@ namespace Application.Services.Identity
             }
 
             throw new NotImplementedException();
+        }
+
+        public async Task<List<ApplicationUser>> GetStudents(IEnumerable<string> ids)
+        {
+            var students = new List<ApplicationUser>();
+            foreach(var id in ids)
+            {
+                students.Add(await _userManager.FindByIdAsync(id));
+            }
+
+            return students;
         }
     }
 }

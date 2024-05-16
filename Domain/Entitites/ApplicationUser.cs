@@ -10,5 +10,6 @@ namespace Domain.Entitites
         public string Name { get; set; }
         public string StudentCode { get; set; }
         public string Type { get; set; }
+        public decimal Budget { get; set; }
     }
 }

@@ -18,21 +18,21 @@ namespace Infrastructure.Repositories.BaseRepository
             _context = entity;
         }
 
-        public async void AddAsync(TEntity entity)
+        public async Task AddAsync(TEntity entity)
         {
             await _entity.AddAsync(entity);
 
             _context.SaveChanges();
         }
 
-        public async void RemoveAsync(TEntity item)
+        public async Task RemoveAsync(TEntity item)
         {
             _context.Remove(item);
 
             _context.SaveChanges();
         }
 
-        public async void UpdateAsync(TEntity entity)
+        public async Task UpdateAsync(TEntity entity)
         {
             _entity.Update(entity);
 

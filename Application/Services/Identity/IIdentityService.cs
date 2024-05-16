@@ -18,5 +18,6 @@ namespace Application.Services.Identity
         Task<DefaultResponse> ValidateUsernameAsync(string email);
         Task<DefaultResponse> ValidateEmailAsync(string email);
         Task<DefaultResponse> ChangePasswordAsync(ChangePasswordRequest changePasswordData);
+        Task<List<ApplicationUser>> GetStudents(IEnumerable<string> ids);
     }
 }

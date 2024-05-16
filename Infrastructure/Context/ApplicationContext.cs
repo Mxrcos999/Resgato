@@ -14,7 +14,9 @@ namespace Infrastructure.Context
         {
             _contextAccessor = contextAccessor;
         }
+
+        public DbSet<PreventionAction> Actions { get; set; }
+        public DbSet<Settings> Settings { get; set; }
+        public DbSet<Round> Round { get; set; }
     }
-
-
 }
