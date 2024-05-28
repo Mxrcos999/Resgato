@@ -9,6 +9,7 @@ using Infrastructure.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Data.Entity;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -35,6 +36,17 @@ namespace Application.Services.Identity
             _userManager = userManager;
             _jwtOptions = jwtOptions.Value;
             _userId = _context._contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        public async Task<BaseResponse<List<ApplicationUser>>> GetStudents()
+        {
+            var data = _userManager.Users.ToList();
+
+            var response = new BaseResponse<List<ApplicationUser>>();
+
+            response.Data = data;
+
+            return response;
         }
 
         public async Task<DefaultResponse> PutUser(PutUserRequest userData)

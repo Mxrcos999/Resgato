@@ -168,4 +168,10 @@ public class UserController : ControllerBase
         return StatusCode(StatusCodes.Status500InternalServerError);
     }
 
+    [Authorize]
+    [HttpGet("/get-students")]
+    public async Task<ActionResult> GetStudentsAsync()
+    {
+        return Ok(await _identityService.GetStudents());
+    }
 }

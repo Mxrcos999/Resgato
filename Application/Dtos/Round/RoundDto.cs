@@ -1,6 +1,4 @@
-﻿using Domain.Entitites;
-
-namespace Application.Dtos.Round;
+﻿namespace Application.Dtos.Round;
 public class RoundDto
 {
     public int Id { get; set; }

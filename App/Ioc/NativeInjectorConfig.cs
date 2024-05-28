@@ -17,9 +17,12 @@ namespace ASP.NET_Core_Template.Ioc
         {
             services.AddDbContext<ApplicationContext>(opt =>
             opt.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddScoped<ApplicationContext>();
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
             services.AddScoped<IIdentityService, IdentityService>();
+            services.AddScoped<IRoundService, RoundService>();
             services.AddScoped<IPreventionService, PreventionService>();
 
             services.AddCors(options =>

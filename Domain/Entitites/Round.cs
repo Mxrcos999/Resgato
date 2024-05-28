@@ -6,4 +6,5 @@ public sealed class Round
     public List<ApplicationUser> Students { get; set; }
     public ApplicationUser Professor { get; set; }
     public DateTime Deadline { get; set; }
+    public int CurrentRound { get; set; }
 }

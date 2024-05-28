@@ -4,7 +4,6 @@ using Application.Dtos.User.Login;
 using Application.Dtos.User.Password;
 using Application.Dtos.User.Put;
 using Domain.Entitites;
-using System;
 
 namespace Application.Services.Identity
 {
@@ -19,5 +18,6 @@ namespace Application.Services.Identity
         Task<DefaultResponse> ValidateEmailAsync(string email);
         Task<DefaultResponse> ChangePasswordAsync(ChangePasswordRequest changePasswordData);
         Task<List<ApplicationUser>> GetStudents(IEnumerable<string> ids);
+        Task<BaseResponse<List<ApplicationUser>>> GetStudents();
     }
 }

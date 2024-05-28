@@ -5,6 +5,10 @@ namespace Domain.Entitites
 {
     public class ApplicationUser : IdentityUser
     {
+        public ApplicationUser()
+        {
+            
+        }
         public DateTime CreateUserDate { get; set; }
 
         public string Name { get; set; }
