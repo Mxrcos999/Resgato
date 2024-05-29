@@ -1,5 +1,6 @@
 ﻿using Application.Dtos.Round;
 using Application.Services;
+using Application.Services.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASP.NET_Core_Template.Controllers;
@@ -9,16 +10,25 @@ namespace ASP.NET_Core_Template.Controllers;
 public class RoundController : ControllerBase
 {
     private readonly IRoundService _svc;
-    public RoundController(IRoundService svc)
+    private readonly IIdentityService _svcUser;
+    public RoundController(IRoundService svc, IIdentityService svcUser)
     {
         _svc = svc;
+        _svcUser = svcUser;
     }
 
     [HttpPut]
     [Route("/pass-round")]
-    public async Task<ActionResult> PassRound(RoundDto dto)
+    public async Task<ActionResult> PassRound(int roundId)
     {
-        return Ok(await _svc.PassRound(dto));
+        return Ok(await _svc.PassRound(roundId));
+    }
+
+    [HttpPut]
+    [Route("/answer-round")]
+    public async Task<ActionResult> AnswerRound(AnswerRoundDto dto)
+    {
+        return Ok(await _svcUser.AnswerRound(dto));
     }
 
     [HttpPost]

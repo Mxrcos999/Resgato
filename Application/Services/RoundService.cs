@@ -8,7 +8,7 @@ public interface IRoundService
 {
     Task<bool> AddRound(RoundDto dto);
     Task<IEnumerable<RoundGet>> GetRounds();
-    Task<bool> PassRound(RoundDto dto);
+    Task<bool> PassRound(int dto);
 }
 
 public class RoundService : IRoundService
@@ -39,15 +39,20 @@ public class RoundService : IRoundService
         return true;
     }
 
-    public async Task<bool> PassRound(RoundDto dto)
+    public async Task<bool> PassRound(int Id)
     {
-        var currentRound = await roundRepo.GetAsync(dto.Id);
+        var currentRound = await roundRepo.GetAsync(Id);
 
-        currentRound.CurrentRound++;
+        if(currentRound.CurrentRound < 4)
+        {
+            currentRound.CurrentRound++;
 
-        await roundRepo.UpdateAsync(currentRound);
+            await roundRepo.UpdateAsync(currentRound);
 
-        return true;
+            return true;
+        }
+
+        return false;
     }
 
     public async Task<IEnumerable<RoundGet>> GetRounds()

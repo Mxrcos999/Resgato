@@ -1,5 +1,7 @@
 ﻿using App.Application.Configuration;
 using Application.Dtos.Default;
+using Application.Dtos.Prevention;
+using Application.Dtos.Round;
 using Application.Dtos.User.Create;
 using Application.Dtos.User.Login;
 using Application.Dtos.User.Password;
@@ -13,6 +15,7 @@ using System.Data.Entity;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Application.Services.Identity
@@ -24,18 +27,20 @@ namespace Application.Services.Identity
         private readonly SignInManager<ApplicationUser> _singInManager;
 
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ISessionService _session;
 
         private readonly JwtOptions _jwtOptions;
 
         private readonly string _userId;
 
-        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions)
+        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session)
         {
             _context = context;
             _singInManager = signInManager;
             _userManager = userManager;
             _jwtOptions = jwtOptions.Value;
             _userId = _context._contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            _session = session;
         }
 
         public async Task<BaseResponse<List<ApplicationUser>>> GetStudents()
@@ -364,6 +369,36 @@ namespace Application.Services.Identity
             }
         }
 
+        public async Task<bool> AnswerRound(AnswerRoundDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(_userId);
+
+            var preventions = JsonSerializer.Deserialize<List<PreventionDto>>(_session.Get("preventions"));
+
+            decimal maleCastrationsValue = (preventions.Where
+                (x => x.Action == "Castração" && x.Gender == "Macho")
+                .FirstOrDefault()).Value * dto.QtdMaleCastrate;
+
+            decimal femaleCastrationsValue = (preventions.Where
+                (x => x.Action == "Castração" && x.Gender == "Femea")
+                .FirstOrDefault()).Value * dto.QtdFemaleCastrate;
+
+            decimal maleShelterValue = (preventions.Where
+                (x => x.Action == "Abrigo" && x.Gender == "Macho")
+                .FirstOrDefault()).Value * dto.QtdMaleShelter;
+
+            decimal femaleShelterValue = (preventions.Where
+                (x => x.Action == "Abrigo" && x.Gender == "Femea")
+                .FirstOrDefault()).Value * dto.QtdFamaleShelter;
+
+            var total = maleCastrationsValue + femaleCastrationsValue + maleShelterValue + femaleShelterValue;
+
+            user.Budget -= total;
+
+            await _userManager.UpdateAsync(user);
+
+            return true;
+        }
         public async Task<DefaultResponse> ValidateUsernameAsync(string email)
         {
             var user = await _userManager.FindByNameAsync(email);

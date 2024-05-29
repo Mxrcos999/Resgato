@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.Default;
+using Application.Dtos.Round;
 using Application.Dtos.User.Create;
 using Application.Dtos.User.Login;
 using Application.Dtos.User.Password;
@@ -19,5 +20,6 @@ namespace Application.Services.Identity
         Task<DefaultResponse> ChangePasswordAsync(ChangePasswordRequest changePasswordData);
         Task<List<ApplicationUser>> GetStudents(IEnumerable<string> ids);
         Task<BaseResponse<List<ApplicationUser>>> GetStudents();
+        Task<bool> AnswerRound(AnswerRoundDto dto);
     }
 }

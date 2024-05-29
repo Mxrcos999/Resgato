@@ -6,6 +6,15 @@ public class RoundDto
     public DateTime Deadline { get; set; }
 }
 
+public class AnswerRoundDto
+{
+    public int QtdMaleCastrate { get; set; }
+    public int QtdFemaleCastrate { get; set; }
+    public DateTime DateCastration { get; set; }
+    public int QtdMaleShelter { get; set; }
+    public int QtdFamaleShelter { get; set; }
+}
+
 public class RoundGet
 {
     public int Id { get; set; }

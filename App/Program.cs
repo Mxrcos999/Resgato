@@ -14,7 +14,13 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod();
         });
 });
-
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(3);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true; 
+});
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -35,6 +41,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowedCorsOrigins");
+
+app.UseSession();
 
 app.UseHttpsRedirection();
 

@@ -23,6 +23,7 @@ namespace ASP.NET_Core_Template.Ioc
 
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddScoped<IRoundService, RoundService>();
+            services.AddScoped<ISessionService, SessionService>();
             services.AddScoped<IPreventionService, PreventionService>();
 
             services.AddCors(options =>
