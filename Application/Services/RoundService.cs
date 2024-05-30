@@ -8,7 +8,7 @@ public interface IRoundService
 {
     Task<bool> AddRound(RoundDto dto);
     Task<IEnumerable<RoundGet>> GetRounds();
-    Task<bool> PassRound(int dto);
+    Task<bool> PassRound(RoundDto dto);
 }
 
 public class RoundService : IRoundService
@@ -24,12 +24,9 @@ public class RoundService : IRoundService
 
     public async Task<bool> AddRound(RoundDto dto)
     {
-        var students = await  userRep.GetStudents(dto.StudentsId);
-
         var round = new Round()
         {
             Id = dto.Id,
-            Students = students,
             CurrentRound = 1,
             Deadline = dto.Deadline
         };
@@ -39,12 +36,13 @@ public class RoundService : IRoundService
         return true;
     }
 
-    public async Task<bool> PassRound(int Id)
+    public async Task<bool> PassRound(RoundDto dto)
     {
-        var currentRound = await roundRepo.GetAsync(Id);
+        var currentRound = await roundRepo.GetAsync(dto.Id);
 
         if(currentRound.CurrentRound < 4)
         {
+            currentRound.Deadline = dto.Deadline;
             currentRound.CurrentRound++;
 
             await roundRepo.UpdateAsync(currentRound);
@@ -61,12 +59,6 @@ public class RoundService : IRoundService
         return rounds.Select(round => new RoundGet
         {
             Id = round.Id,
-            Students = (from student in round.Students select new UserResponse()
-            {
-                Id = student.Id, 
-                Nome = student.Name, 
-                StudentCode = student.StudentCode 
-            }).AsEnumerable(),
             Deadline = round.Deadline
         });
     }

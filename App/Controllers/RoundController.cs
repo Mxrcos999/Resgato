@@ -19,12 +19,12 @@ public class RoundController : ControllerBase
 
     [HttpPut]
     [Route("/pass-round")]
-    public async Task<ActionResult> PassRound(int roundId)
+    public async Task<ActionResult> PassRound(RoundDto model)
     {
-        return Ok(await _svc.PassRound(roundId));
+        return Ok(await _svc.PassRound(model));
     }
 
-    [HttpPut]
+    [HttpPost]
     [Route("/answer-round")]
     public async Task<ActionResult> AnswerRound(AnswerRoundDto dto)
     {

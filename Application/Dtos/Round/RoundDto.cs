@@ -2,7 +2,6 @@
 public class RoundDto
 {
     public int Id { get; set; }
-    public IEnumerable<string> StudentsId { get; set; }
     public DateTime Deadline { get; set; }
 }
 
@@ -18,7 +17,6 @@ public class AnswerRoundDto
 public class RoundGet
 {
     public int Id { get; set; }
-    public IEnumerable<UserResponse> Students { get; set; }
     public DateTime Deadline { get; set; }
 }
 

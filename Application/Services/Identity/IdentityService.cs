@@ -135,6 +135,8 @@ namespace Application.Services.Identity
    
         public async Task<DefaultResponse> AddProfessorUser(CreateProfessorUserRequest userData)
         {
+            var professor = new Professor();
+
             var user = new ApplicationUser()
             {
                 UserName = userData.Email,
@@ -143,6 +145,7 @@ namespace Application.Services.Identity
                 CreateUserDate = DateTime.UtcNow,
                 EmailConfirmed = false,
                 Name = userData.Name,
+                Professor = professor,
                 Budget = 10000m
             };
 
