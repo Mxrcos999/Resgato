@@ -372,7 +372,7 @@ namespace Application.Services.Identity
             }
         }
 
-        public async Task<bool> AnswerRound(AnswerRoundDto dto)
+        public async Task<BaseResponse<UserBudgetResponse>> AnswerRound(AnswerRoundDto dto)
         {
             var user = await _userManager.FindByIdAsync(_userId);
 
@@ -400,7 +400,9 @@ namespace Application.Services.Identity
 
             await _userManager.UpdateAsync(user);
 
-            return true;
+            var response = new BaseResponse<UserBudgetResponse>();
+            response.Data =  new UserBudgetResponse() { Budget = user.Budget };
+            return response;
         }
         public async Task<DefaultResponse> ValidateUsernameAsync(string email)
         {
@@ -450,4 +452,9 @@ namespace Application.Services.Identity
             return students;
         }
     }
+}
+
+public class UserBudgetResponse
+{
+    public decimal Budget { get; set; }
 }

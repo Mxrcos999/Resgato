@@ -20,6 +20,6 @@ namespace Application.Services.Identity
         Task<DefaultResponse> ChangePasswordAsync(ChangePasswordRequest changePasswordData);
         Task<List<ApplicationUser>> GetStudents(IEnumerable<string> ids);
         Task<BaseResponse<List<ApplicationUser>>> GetStudents();
-        Task<bool> AnswerRound(AnswerRoundDto dto);
+        Task<BaseResponse<UserBudgetResponse>> AnswerRound(AnswerRoundDto dto);
     }
 }

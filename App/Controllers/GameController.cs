@@ -7,7 +7,11 @@ namespace ASP.NET_Core_Template.Controllers;
 [Route("GameController")]
 public class GameController : ControllerBase
 {
-    //Criar service
+    //private IGameService
+    //public GameController()
+    //{
+        
+    //}
     [HttpPost]
     [Route("/create-game")]
     public async Task<ActionResult> CreateGameAsync(GameDto game)
