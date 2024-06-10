@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20240529235619_AddEntityProfessor")]
-    partial class AddEntityProfessor
+    [Migration("20240610213449_GerandoTudo")]
+    partial class GerandoTudo
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,6 +23,21 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ApplicationUserGame", b =>
+                {
+                    b.Property<int>("GamesId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StudentsId")
+                        .HasColumnType("text");
+
+                    b.HasKey("GamesId", "StudentsId");
+
+                    b.HasIndex("StudentsId");
+
+                    b.ToTable("ApplicationUserGame");
+                });
 
             modelBuilder.Entity("Domain.Entitites.ApplicationUser", b =>
                 {
@@ -48,9 +63,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
-
-                    b.Property<int?>("GameId")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -82,14 +94,10 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("ProfessorId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("RoundId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
                     b.Property<string>("StudentCode")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -105,19 +113,12 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
-
-                    b.HasIndex("ProfessorId")
-                        .IsUnique();
-
-                    b.HasIndex("RoundId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -130,7 +131,11 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ProfessorId")
+                    b.Property<string>("ProfessorEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ProfessorId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -138,6 +143,32 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ProfessorId");
 
                     b.ToTable("Game");
+                });
+
+            modelBuilder.Entity("Domain.Entitites.GameStudent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StudentId1")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("StudentId1");
+
+                    b.ToTable("GameStudent");
                 });
 
             modelBuilder.Entity("Domain.Entitites.PreventionAction", b =>
@@ -172,7 +203,14 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId")
+                        .IsUnique();
 
                     b.ToTable("Professor");
                 });
@@ -185,6 +223,9 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("CurrentRound")
                         .HasColumnType("integer");
 
@@ -194,14 +235,9 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("GameId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ProfessorId")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
-
-                    b.HasIndex("ProfessorId");
 
                     b.ToTable("Round");
                 });
@@ -214,15 +250,19 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CatsQuantity")
-                        .IsRequired()
+                    b.Property<string>("ApplicationUserId")
                         .HasColumnType("text");
+
+                    b.Property<int>("CatsQuantity")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Settings");
                 });
@@ -363,32 +403,54 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entitites.ApplicationUser", b =>
+            modelBuilder.Entity("ApplicationUserGame", b =>
                 {
                     b.HasOne("Domain.Entitites.Game", null)
-                        .WithMany("Students")
-                        .HasForeignKey("GameId");
+                        .WithMany()
+                        .HasForeignKey("GamesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("Domain.Entitites.Professor", "Professor")
-                        .WithOne("User")
-                        .HasForeignKey("Domain.Entitites.ApplicationUser", "ProfessorId");
-
-                    b.HasOne("Domain.Entitites.Round", null)
-                        .WithMany("Students")
-                        .HasForeignKey("RoundId");
-
-                    b.Navigation("Professor");
+                    b.HasOne("Domain.Entitites.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entitites.Game", b =>
                 {
-                    b.HasOne("Domain.Entitites.Professor", "Professor")
+                    b.HasOne("Domain.Entitites.Professor", null)
                         .WithMany("Games")
-                        .HasForeignKey("ProfessorId")
+                        .HasForeignKey("ProfessorId");
+                });
+
+            modelBuilder.Entity("Domain.Entitites.GameStudent", b =>
+                {
+                    b.HasOne("Domain.Entitites.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Professor");
+                    b.HasOne("Domain.Entitites.ApplicationUser", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId1");
+
+                    b.Navigation("Game");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("Domain.Entitites.Professor", b =>
+                {
+                    b.HasOne("Domain.Entitites.ApplicationUser", "User")
+                        .WithOne("Professor")
+                        .HasForeignKey("Domain.Entitites.Professor", "ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entitites.Round", b =>
@@ -396,12 +458,15 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entitites.Game", null)
                         .WithMany("Rounds")
                         .HasForeignKey("GameId");
+                });
 
-                    b.HasOne("Domain.Entitites.ApplicationUser", "Professor")
-                        .WithMany()
-                        .HasForeignKey("ProfessorId");
+            modelBuilder.Entity("Domain.Entitites.Settings", b =>
+                {
+                    b.HasOne("Domain.Entitites.ApplicationUser", "ApplicationUser")
+                        .WithMany("Setting")
+                        .HasForeignKey("ApplicationUserId");
 
-                    b.Navigation("Professor");
+                    b.Navigation("ApplicationUser");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -455,24 +520,21 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Entitites.ApplicationUser", b =>
+                {
+                    b.Navigation("Professor");
+
+                    b.Navigation("Setting");
+                });
+
             modelBuilder.Entity("Domain.Entitites.Game", b =>
                 {
                     b.Navigation("Rounds");
-
-                    b.Navigation("Students");
                 });
 
             modelBuilder.Entity("Domain.Entitites.Professor", b =>
                 {
                     b.Navigation("Games");
-
-                    b.Navigation("User")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Entitites.Round", b =>
-                {
-                    b.Navigation("Students");
                 });
 #pragma warning restore 612, 618
         }
