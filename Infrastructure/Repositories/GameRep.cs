@@ -25,6 +25,7 @@ public class GameRep : IGameRep
         var games = from game in _context.Game
                     .Include(x => x.Rounds)
                     .Include(x => x.Students)
+                    .Include(x => x.Rounds)
                     select new Game
                     {
                         Id = game.Id,

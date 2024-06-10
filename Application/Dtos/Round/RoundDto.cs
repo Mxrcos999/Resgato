@@ -1,8 +1,15 @@
 ﻿namespace Application.Dtos.Round;
 public class RoundDto
 {
+    public DateTime Deadline { get; set; }
+}
+
+public class GetRoundDto
+{
     public int Id { get; set; }
     public DateTime Deadline { get; set; }
+    public int CurrentRound { get; set; }
+    public bool Active { get; set; }
 }
 
 public class AnswerRoundDto

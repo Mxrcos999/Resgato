@@ -20,11 +20,11 @@ namespace Infrastructure.Context
             base.OnModelCreating(builder);
             builder.ApplyConfiguration(new ApplicationUserMap());
 
-            // Configurações adicionais, se necessário
         }
         public DbSet<PreventionAction> Actions { get; set; }
         public DbSet<Settings> Settings { get; set; }
         public DbSet<Round> Round { get; set; }
         public DbSet<Game> Game { get; set; }
+        public DbSet<GameStudent> GameStudent { get; set; }
     }
 }

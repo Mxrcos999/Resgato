@@ -1,4 +1,5 @@
-﻿using Application.Dtos.Round;
+﻿using Application.Dtos.Game;
+using Application.Dtos.Round;
 using Application.Services;
 using Application.Services.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ public class RoundController : ControllerBase
 
     [HttpPut]
     [Route("/pass-round")]
-    public async Task<ActionResult> PassRound(RoundDto model)
+    public async Task<ActionResult> PassRound(PassRound model)
     {
         return Ok(await _svc.PassRound(model));
     }

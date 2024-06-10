@@ -31,22 +31,36 @@ public class GameService : IGameService
     {
         var professor = await userRep.GetProfessorId();
         var today = DateTime.Today;
-        var closestDeadline = dto.Round
+
+        // Ordenar as rodadas pela data de término mais próxima de hoje
+        var sortedRounds = dto.Round
             .OrderBy(x => Math.Abs((x.Deadline - today).Ticks))
-            .FirstOrDefault()?.Deadline; 
+            .ToList();
+        var rounds = new List<Round>();
 
-        var students = await userRep.GetStudents(dto.StudentsId);
-
-        var round = new Round()
+        // Atualizar o currentRound para cada rodada na ordem
+        for (int i = 0; i < sortedRounds.Count; i++)
         {
-            Deadline = closestDeadline ?? today,
-            CurrentRound = 1,
-        };
+            var active = false;
+            if(i + 1 == 1)
+                active = true;
+
+            var round = new Round()
+            {
+                Deadline = sortedRounds[i].Deadline,
+                CurrentRound = i + 1,
+                Active = active
+            };
+
+            rounds.Add(round);
+        }
+     
+        var students = await userRep.GetStudents(dto.StudentsId);
 
         var game = new Game()
         {
             ProfessorEmail = professor,
-            Rounds = new List<Round>() { round },
+            Rounds = rounds,
             Students = students,
         };
 
@@ -62,10 +76,13 @@ public class GameService : IGameService
                    {
                        Id = gamee.Id,
                        ProfessorId = gamee.Id,
-                       Round = gamee.Rounds.Select(x => new Dtos.Round.RoundDto()
+                       Round = gamee.Rounds.Select(x => new Dtos.Round.GetRoundDto()
                        {
                            Id = x.Id,
                            Deadline = x.Deadline,
+                           CurrentRound = x.CurrentRound,
+                           Active = x.Active
+                           
                        }),
                        StudentsId = gamee.Students.Select(x => x.Id).ToList(),
                    };

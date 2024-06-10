@@ -1,6 +1,8 @@
-﻿using Application.Dtos.Round;
+﻿using Application.Dtos.Game;
+using Application.Dtos.Round;
 using Application.Services.Identity;
 using Domain.Entitites;
+using Infrastructure.Repositories;
 using Infrastructure.Repositories.BaseRepository;
 
 namespace Application.Services;
@@ -8,25 +10,26 @@ public interface IRoundService
 {
     Task<bool> AddRound(RoundDto dto);
     Task<IEnumerable<RoundGet>> GetRounds();
-    Task<bool> PassRound(RoundDto dto);
+    Task<bool> PassRound(PassRound dto);
 }
 
 public class RoundService : IRoundService
 {
     private readonly IBaseRepository<Round> roundRepo;
+    private readonly IGameRep gameRepo;
     private readonly IIdentityService userRep;
 
-    public RoundService(IBaseRepository<Round> roundRepo, IIdentityService userRep)
+    public RoundService(IBaseRepository<Round> roundRepo, IIdentityService userRep, IGameRep gameRepo)
     {
         this.roundRepo = roundRepo;
         this.userRep = userRep;
+        this.gameRepo = gameRepo;
     }
 
     public async Task<bool> AddRound(RoundDto dto)
     {
         var round = new Round()
         {
-            Id = dto.Id,
             CurrentRound = 1,
             Deadline = dto.Deadline
         };
@@ -36,19 +39,28 @@ public class RoundService : IRoundService
         return true;
     }
 
-    public async Task<bool> PassRound(RoundDto dto)
+    public async Task<bool> PassRound(PassRound dto)
     {
-        var currentRound = await roundRepo.GetAsync(dto.Id);
+        var game = (await gameRepo.GetAllGame()).Where(x => x.Id == dto.Id).FirstOrDefault();
 
-        if(currentRound.CurrentRound < 4)
+        var currentRound = game.Rounds.Where(x => x.Active == true).FirstOrDefault();
+
+        currentRound.Active = false;
+        var nextRound = game.Rounds.Where(x => x.CurrentRound == currentRound.CurrentRound + 1).FirstOrDefault();
+        nextRound.Active = true;
+
+        for (int i = 0; i < game.Rounds.Count; i++)
         {
-            currentRound.Deadline = dto.Deadline;
-            currentRound.CurrentRound++;
-
-            await roundRepo.UpdateAsync(currentRound);
-
-            return true;
+            if (game.Rounds.ToList()[i].CurrentRound == currentRound.CurrentRound)
+            {
+                game.Rounds.ToList()[i] = currentRound;
+            }
+            else if (nextRound != null && game.Rounds.ToList()[i].CurrentRound == nextRound.CurrentRound)
+            {
+                game.Rounds.ToList()[i] = nextRound;
+            }
         }
+        await roundRepo.UpdateAsync(currentRound);
 
         return false;
     }
