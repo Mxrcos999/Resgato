@@ -9,7 +9,8 @@ namespace Application.Services;
 public interface IGameService
 {
     Task<bool> AddGame(GameDto dto);
-    Task<IEnumerable<GameDto>> GetGame();
+    Task<IEnumerable<GetGameDto>> GetGame();
+    Task<GameInformation> GetInformationGame(int id);
 }
 
 public class GameService : IGameService
@@ -32,13 +33,11 @@ public class GameService : IGameService
         var professor = await userRep.GetProfessorId();
         var today = DateTime.Today;
 
-        // Ordenar as rodadas pela data de término mais próxima de hoje
         var sortedRounds = dto.Round
             .OrderBy(x => Math.Abs((x.Deadline - today).Ticks))
             .ToList();
         var rounds = new List<Round>();
 
-        // Atualizar o currentRound para cada rodada na ordem
         for (int i = 0; i < sortedRounds.Count; i++)
         {
             var active = false;
@@ -69,10 +68,10 @@ public class GameService : IGameService
         return true;
     }
 
-    public async Task<IEnumerable<GameDto>> GetGame()
+    public async Task<IEnumerable<GetGameDto>> GetGame()
     {
         var game = from gamee in await gameRepo.GetAllGame()
-                   select new GameDto()
+                   select new GetGameDto()
                    {
                        Id = gamee.Id,
                        ProfessorId = gamee.Id,
@@ -88,6 +87,30 @@ public class GameService : IGameService
                    };
 
         return game;
+    }
+
+    public async Task<GameInformation> GetInformationGame(int id)
+    {
+        var budget = await userRep.GetBudgetAsync();
+
+        var game = (await gameRepo.GetAllGame()).Where(x => x.Id == id).FirstOrDefault();
+        if (game is null)
+            return null;
+
+        var gameDto = new GameInformation()
+        {
+            BudgetUser = budget,
+            Id = id,
+            currentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound,
+            StudentDtos = game.Students.Select(x => new StudentDto
+            {
+                Email = x.Email,
+                Name = x.Name,
+                StudentCode = x.StudentCode
+            })
+        };
+
+        return gameDto;
     }
 }
 

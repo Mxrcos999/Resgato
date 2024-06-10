@@ -484,6 +484,12 @@ namespace Application.Services.Identity
 
             return students;
         }
+        public async Task<decimal> GetBudgetAsync()
+        {
+            var user = await _userManager.FindByIdAsync(_userId);
+
+            return user.Budget;
+        }
     }
 }
 
