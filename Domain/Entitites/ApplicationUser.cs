@@ -17,5 +17,6 @@ namespace Domain.Entitites
         public decimal Budget { get; set; }
         public Professor? Professor { get; set; }
         public int? ProfessorId { get; set; }
+        public IEnumerable<Settings> Setting { get; set; }
     }
 }

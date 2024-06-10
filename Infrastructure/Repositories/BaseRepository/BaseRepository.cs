@@ -1,6 +1,7 @@
 ﻿using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace Infrastructure.Repositories.BaseRepository
 {
@@ -11,11 +12,15 @@ namespace Infrastructure.Repositories.BaseRepository
         private readonly DbSet<TEntity> _entity;
 
         private readonly ApplicationContext _context;
+        public readonly string _userId;
+
 
         public BaseRepository(ApplicationContext entity)
         {
             _entity = entity.Set<TEntity>();
             _context = entity;
+            _userId = _context._contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         }
 
         public async Task AddAsync(TEntity entity)

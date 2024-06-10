@@ -4,6 +4,7 @@ using Application.Services;
 using Application.Services.Identity;
 using Domain.Entitites;
 using Infrastructure.Context;
+using Infrastructure.Repositories;
 using Infrastructure.Repositories.BaseRepository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,9 @@ namespace ASP.NET_Core_Template.Ioc
             services.AddScoped<IRoundService, RoundService>();
             services.AddScoped<ISessionService, SessionService>();
             services.AddScoped<IPreventionService, PreventionService>();
+            services.AddScoped<IGameService, GameService>();
+            services.AddScoped<IGameRep, GameRep>();
+            services.AddScoped<ISettingService, SettingService>();
 
             services.AddCors(options =>
             {

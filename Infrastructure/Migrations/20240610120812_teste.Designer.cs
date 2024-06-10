@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20240610120812_teste")]
+    partial class teste
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,11 +121,7 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ProfessorEmail")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int?>("ProfessorId")
+                    b.Property<int>("ProfessorId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -209,19 +207,15 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
+                    b.Property<string>("CatsQuantity")
+                        .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("CatsQuantity")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Settings");
                 });
@@ -371,9 +365,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entitites.Game", b =>
                 {
-                    b.HasOne("Domain.Entitites.Professor", null)
+                    b.HasOne("Domain.Entitites.Professor", "Professor")
                         .WithMany("Games")
-                        .HasForeignKey("ProfessorId");
+                        .HasForeignKey("ProfessorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Professor");
                 });
 
             modelBuilder.Entity("Domain.Entitites.Professor", b =>
@@ -392,15 +390,6 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entitites.Game", null)
                         .WithMany("Rounds")
                         .HasForeignKey("GameId");
-                });
-
-            modelBuilder.Entity("Domain.Entitites.Settings", b =>
-                {
-                    b.HasOne("Domain.Entitites.ApplicationUser", "ApplicationUser")
-                        .WithMany("Setting")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.Navigation("ApplicationUser");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -457,8 +446,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entitites.ApplicationUser", b =>
                 {
                     b.Navigation("Professor");
-
-                    b.Navigation("Setting");
                 });
 
             modelBuilder.Entity("Domain.Entitites.Game", b =>

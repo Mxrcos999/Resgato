@@ -21,5 +21,6 @@ namespace Application.Services.Identity
         Task<List<ApplicationUser>> GetStudents(IEnumerable<string> ids);
         Task<BaseResponse<List<ApplicationUser>>> GetStudents();
         Task<BaseResponse<UserBudgetResponse>> AnswerRound(AnswerRoundDto dto);
+        Task<string> GetProfessorId();
     }
 }

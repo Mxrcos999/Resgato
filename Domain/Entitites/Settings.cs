@@ -8,6 +8,7 @@ public sealed class Settings
     }
 
     public int Id { get; set; }
-    public string CatsQuantity { get; set; }
+    public int CatsQuantity { get; set; }
     public string Gender { get; set; }
+    public ApplicationUser ApplicationUser { get; set; }
 }

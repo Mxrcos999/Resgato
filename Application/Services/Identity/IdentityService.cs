@@ -8,10 +8,10 @@ using Application.Dtos.User.Password;
 using Application.Dtos.User.Put;
 using Domain.Entitites;
 using Infrastructure.Context;
+using Infrastructure.Mapping;
+using Infrastructure.Repositories.BaseRepository;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Data.Entity;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -33,7 +33,8 @@ namespace Application.Services.Identity
 
         private readonly string _userId;
 
-        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session)
+        private readonly IBaseRepository<Professor> professorRep;
+        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep)
         {
             _context = context;
             _singInManager = signInManager;
@@ -41,6 +42,7 @@ namespace Application.Services.Identity
             _jwtOptions = jwtOptions.Value;
             _userId = _context._contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             _session = session;
+            this.professorRep = professorRep;
         }
 
         public async Task<BaseResponse<List<ApplicationUser>>> GetStudents()
@@ -70,7 +72,7 @@ namespace Application.Services.Identity
 
                 if (!result.Succeeded)
                     response.AddErrors(result.Errors.ToList().ConvertAll<string>(item => item.Description));
-            
+
                 return response;
             }
 
@@ -84,6 +86,18 @@ namespace Application.Services.Identity
 
         public async Task<DefaultResponse> AddStudentUser(CreateStudentUserRequest userData)
         {
+            var settingMale = new Settings
+            {
+                CatsQuantity = 200,
+                Gender = "MACHO"
+            };
+
+            var settingFemale = new Settings
+            {
+                CatsQuantity = 200,
+                Gender = "Femea"
+            };
+
             var user = new ApplicationUser()
             {
                 UserName = userData.Email,
@@ -93,11 +107,17 @@ namespace Application.Services.Identity
                 EmailConfirmed = false,
                 Name = userData.Name,
                 StudentCode = userData.StudentCode,
-                Budget = 10000m
+                Budget = 10000m,
+                Setting = new List<Settings>()
+                {
+                    settingMale,
+                    settingFemale,
+                }
+                
             };
 
             var createdUser = await _userManager.CreateAsync(user, userData.Password);
-      
+
             var defaultResponse = new DefaultResponse();
 
             if (!createdUser.Succeeded)
@@ -132,7 +152,7 @@ namespace Application.Services.Identity
 
             return defaultResponse;
         }
-   
+
         public async Task<DefaultResponse> AddProfessorUser(CreateProfessorUserRequest userData)
         {
             var professor = new Professor();
@@ -150,7 +170,7 @@ namespace Application.Services.Identity
             };
 
             var createdUser = await _userManager.CreateAsync(user, userData.Password);
-      
+
             var defaultResponse = new DefaultResponse();
 
             if (!createdUser.Succeeded)
@@ -235,7 +255,7 @@ namespace Application.Services.Identity
             var signInResult = await _singInManager.PasswordSignInAsync(user, loginData.Password, false, false);
 
             var response = new BaseResponse<LoginUserResponse>();
-   
+
             if (!signInResult.Succeeded)
             {
                 if (signInResult.IsLockedOut)
@@ -396,12 +416,20 @@ namespace Application.Services.Identity
 
             var total = maleCastrationsValue + femaleCastrationsValue + maleShelterValue + femaleShelterValue;
 
-            user.Budget -= total;
+            var macho = user.Setting.Where(x => x.Gender == "MACHO").FirstOrDefault();
+            var femea = user.Setting.Where(x => x.Gender == "FEMEA").FirstOrDefault();
 
+            macho.CatsQuantity -= (dto.QtdMaleCastrate + dto.QtdMaleShelter);
+            femea.CatsQuantity -= (dto.QtdFemaleCastrate + dto.QtdFemaleCastrate);
+            user.Setting.ToList().Clear();
+
+            user.Setting = new List<Settings>() { macho, femea };
+
+            user.Budget -= total;
             await _userManager.UpdateAsync(user);
 
             var response = new BaseResponse<UserBudgetResponse>();
-            response.Data =  new UserBudgetResponse() { Budget = user.Budget };
+            response.Data = new UserBudgetResponse() { Budget = user.Budget };
             return response;
         }
         public async Task<DefaultResponse> ValidateUsernameAsync(string email)
@@ -440,11 +468,16 @@ namespace Application.Services.Identity
 
             throw new NotImplementedException();
         }
+        public async Task<string> GetProfessorId()
+        {
+            var email = await _userManager.FindByIdAsync(_userId);
 
+            return email.Email;
+        }
         public async Task<List<ApplicationUser>> GetStudents(IEnumerable<string> ids)
         {
             var students = new List<ApplicationUser>();
-            foreach(var id in ids)
+            foreach (var id in ids)
             {
                 students.Add(await _userManager.FindByIdAsync(id));
             }

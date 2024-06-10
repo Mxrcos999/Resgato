@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20240610122227_teste email")]
+    partial class testeemail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -209,19 +211,15 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
+                    b.Property<string>("CatsQuantity")
+                        .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("CatsQuantity")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Settings");
                 });
@@ -394,15 +392,6 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("GameId");
                 });
 
-            modelBuilder.Entity("Domain.Entitites.Settings", b =>
-                {
-                    b.HasOne("Domain.Entitites.ApplicationUser", "ApplicationUser")
-                        .WithMany("Setting")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.Navigation("ApplicationUser");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -457,8 +446,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entitites.ApplicationUser", b =>
                 {
                     b.Navigation("Professor");
-
-                    b.Navigation("Setting");
                 });
 
             modelBuilder.Entity("Domain.Entitites.Game", b =>
