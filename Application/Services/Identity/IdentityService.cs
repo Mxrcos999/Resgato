@@ -37,7 +37,8 @@ namespace Application.Services.Identity
         private readonly string _userId;
 
         private readonly IBaseRepository<Professor> professorRep;
-        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep, ISettingRep settingRep)
+        private readonly IBaseRepository<PreventionAction> preventionRep;
+        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep, ISettingRep settingRep, IBaseRepository<PreventionAction> preventionRep)
         {
             _context = context;
             _singInManager = signInManager;
@@ -47,6 +48,7 @@ namespace Application.Services.Identity
             _session = session;
             this.professorRep = professorRep;
             this.settingRep = settingRep;
+            this.preventionRep = preventionRep;
         }
 
         public async Task<BaseResponse<List<StudentDto>>> GetStudents()
@@ -97,18 +99,6 @@ namespace Application.Services.Identity
 
         public async Task<DefaultResponse> AddStudentUser(CreateStudentUserRequest userData)
         {
-            var settingMale = new Settings
-            {
-                CatsQuantity = 200,
-                Gender = "MACHO"
-            };
-
-            var settingFemale = new Settings
-            {
-                CatsQuantity = 200,
-                Gender = "Femea"
-            };
-
             var user = new ApplicationUser()
             {
                 UserName = userData.Email,
@@ -119,11 +109,7 @@ namespace Application.Services.Identity
                 Name = userData.Name,
                 StudentCode = userData.StudentCode,
                 Budget = 10000m,
-                Setting = new List<Settings>()
-                {
-                    settingMale,
-                    settingFemale,
-                }
+               
 
             };
 
@@ -407,7 +393,7 @@ namespace Application.Services.Identity
         {
             var user = await _userManager.FindByIdAsync(_userId);
 
-            var preventions = JsonSerializer.Deserialize<List<PreventionDto>>(_session.Get("preventions"));
+            var preventions = await preventionRep.GetAllAsync();
 
             decimal maleCastrationsValue = (preventions.Where
                 (x => x.Action == "Castração" && x.Gender == "Macho")
@@ -427,14 +413,28 @@ namespace Application.Services.Identity
 
             var total = maleCastrationsValue + femaleCastrationsValue + maleShelterValue + femaleShelterValue;
 
-            var setting = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUser.Id == _userId);
+            var settingList = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUser.Id == _userId).ToList();
 
-            setting.Where(x => x.Gender == "MACHO").FirstOrDefault().CatsQuantity -= (dto.QtdMaleCastrate + dto.QtdMaleShelter);
-            setting.Where(x => x.Gender == "Femea").FirstOrDefault().CatsQuantity -= (dto.QtdFemaleCastrate + dto.QtdFemaleCastrate);
+            var maleSetting = settingList.FirstOrDefault(x => x.Gender == "MACHO");
+            if (maleSetting != null)
+            {
+                maleSetting.CatsQuantity -= (dto.QtdMaleCastrate);
+                maleSetting.CatsQuantity -= (dto.QtdMaleShelter);
+            }
+
+            var femaleSetting = settingList.FirstOrDefault(x => x.Gender == "Femea");
+            if (femaleSetting != null)
+            {
+                femaleSetting.CatsQuantity -= (dto.QtdFemaleCastrate);
+                femaleSetting.CatsQuantity -= (dto.QtdFamaleShelter);
+            }
+
+            user.Setting = settingList;
 
             user.Budget -= total;
-            user.Setting = setting;
+
             await _userManager.UpdateAsync(user);
+
 
             var response = new BaseResponse<UserBudgetResponse>();
             response.Data = new UserBudgetResponse() { Budget = user.Budget };

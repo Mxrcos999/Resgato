@@ -34,7 +34,7 @@ public class GameController : ControllerBase
     
     [HttpGet]
     [Authorize]
-    [Route("/get-game")]
+    [Route("/get-game-information")]
     public async Task<ActionResult> GetGameByIdAsync(int id)
     {
         var result = await _svc.GetInformationGame(id);

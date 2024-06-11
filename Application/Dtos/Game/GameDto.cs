@@ -20,7 +20,9 @@ public class GameDto
 public class GameInformation
 {
     public int Id { get; set; }
-    public int currentRound { get; set; }
+    public int CurrentRound { get; set; }
+    public int TotalCatsMale { get; set; }
+    public int TotalCatsFemale { get; set; }
     public decimal BudgetUser { get; set; }
     public int TotalStudent { get; set; }
     public IEnumerable<StudentDto> StudentDtos { get; set; }

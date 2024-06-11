@@ -17,15 +17,17 @@ public class GameService : IGameService
 {
     private readonly IBaseRepository<Game> gameRep;
     private readonly IBaseRepository<Professor> professorRep;
+    private readonly ISettingRep settingRep;
     private readonly IGameRep gameRepo;
     private readonly IIdentityService userRep;
 
-    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo)
+    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep)
     {
         this.gameRep = gameRep;
         this.professorRep = professorRep;
         this.userRep = userRep;
         this.gameRepo = gameRepo;
+        this.settingRep = settingRep;
     }
 
     public async Task<bool> AddGame(GameDto dto)
@@ -105,12 +107,16 @@ public class GameService : IGameService
         if (game is null)
             return null;
 
+        var settingList = (await settingRep.GetAllByIdAsync()).ToList();
+
         var gameDto = new GameInformation()
         {
             BudgetUser = budget,
             Id = id,
+            TotalCatsFemale = settingList.Where(x => x.Gender == "Femea").FirstOrDefault().CatsQuantity,
+            TotalCatsMale = settingList.Where(x => x.Gender == "MACHO").FirstOrDefault().CatsQuantity,
             TotalStudent = game.Students.Count,
-            currentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound,
+            CurrentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound,
             StudentDtos = game.Students.Select(x => new StudentDto
             {
                 Email = x.Email,
