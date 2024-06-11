@@ -1,5 +1,6 @@
 ﻿using App.Application.Configuration;
 using Application.Dtos.Default;
+using Application.Dtos.Game;
 using Application.Dtos.Prevention;
 using Application.Dtos.Round;
 using Application.Dtos.User.Create;
@@ -8,7 +9,7 @@ using Application.Dtos.User.Password;
 using Application.Dtos.User.Put;
 using Domain.Entitites;
 using Infrastructure.Context;
-using Infrastructure.Mapping;
+using Infrastructure.Repositories;
 using Infrastructure.Repositories.BaseRepository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -31,10 +32,12 @@ namespace Application.Services.Identity
 
         private readonly JwtOptions _jwtOptions;
 
+        private readonly ISettingRep settingRep;
+
         private readonly string _userId;
 
         private readonly IBaseRepository<Professor> professorRep;
-        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep)
+        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep, ISettingRep settingRep)
         {
             _context = context;
             _singInManager = signInManager;
@@ -43,15 +46,23 @@ namespace Application.Services.Identity
             _userId = _context._contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             _session = session;
             this.professorRep = professorRep;
+            this.settingRep = settingRep;
         }
 
-        public async Task<BaseResponse<List<ApplicationUser>>> GetStudents()
+        public async Task<BaseResponse<List<StudentDto>>> GetStudents()
         {
-            var data = _userManager.Users.ToList();
+            var data = _userManager.Users.ToList().Where(x => x.Type == "Student");
 
-            var response = new BaseResponse<List<ApplicationUser>>();
+            var response = new BaseResponse<List<StudentDto>>();
 
-            response.Data = data;
+            response.Data = (from student in data
+                             select new StudentDto()
+                             {
+                                 Email = student.Email,
+                                 StudentCode = student.StudentCode,
+                                 Name = student.Name,
+                                 Id = student.Id
+                             }).ToList();
 
             return response;
         }
@@ -113,7 +124,7 @@ namespace Application.Services.Identity
                     settingMale,
                     settingFemale,
                 }
-                
+
             };
 
             var createdUser = await _userManager.CreateAsync(user, userData.Password);
@@ -416,16 +427,13 @@ namespace Application.Services.Identity
 
             var total = maleCastrationsValue + femaleCastrationsValue + maleShelterValue + femaleShelterValue;
 
-            var macho = user.Setting.Where(x => x.Gender == "MACHO").FirstOrDefault();
-            var femea = user.Setting.Where(x => x.Gender == "FEMEA").FirstOrDefault();
+            var setting = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUser.Id == _userId);
 
-            macho.CatsQuantity -= (dto.QtdMaleCastrate + dto.QtdMaleShelter);
-            femea.CatsQuantity -= (dto.QtdFemaleCastrate + dto.QtdFemaleCastrate);
-            user.Setting.ToList().Clear();
-
-            user.Setting = new List<Settings>() { macho, femea };
+            setting.Where(x => x.Gender == "MACHO").FirstOrDefault().CatsQuantity -= (dto.QtdMaleCastrate + dto.QtdMaleShelter);
+            setting.Where(x => x.Gender == "Femea").FirstOrDefault().CatsQuantity -= (dto.QtdFemaleCastrate + dto.QtdFemaleCastrate);
 
             user.Budget -= total;
+            user.Setting = setting;
             await _userManager.UpdateAsync(user);
 
             var response = new BaseResponse<UserBudgetResponse>();

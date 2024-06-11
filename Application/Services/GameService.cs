@@ -74,7 +74,9 @@ public class GameService : IGameService
                    select new GetGameDto()
                    {
                        Id = gamee.Id,
+                       TotalStudent = gamee.Students.Count,
                        ProfessorId = gamee.Id,
+
                        Round = gamee.Rounds.Select(x => new Dtos.Round.GetRoundDto()
                        {
                            Id = x.Id,
@@ -83,7 +85,13 @@ public class GameService : IGameService
                            Active = x.Active
                            
                        }),
-                       StudentsId = gamee.Students.Select(x => x.Id).ToList(),
+                       Students = gamee.Students.Select(x => new StudentDto()
+                       {
+                           Email = x.Email,
+                           Id = x.Id,
+                           Name = x.Name,   
+                           StudentCode = x.StudentCode
+                       }).ToList(),
                    };
 
         return game;
@@ -101,6 +109,7 @@ public class GameService : IGameService
         {
             BudgetUser = budget,
             Id = id,
+            TotalStudent = game.Students.Count,
             currentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound,
             StudentDtos = game.Students.Select(x => new StudentDto
             {

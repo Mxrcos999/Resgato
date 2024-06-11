@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.Default;
+using Application.Dtos.Game;
 using Application.Dtos.Round;
 using Application.Dtos.User.Create;
 using Application.Dtos.User.Login;
@@ -19,7 +20,7 @@ namespace Application.Services.Identity
         Task<DefaultResponse> ValidateEmailAsync(string email);
         Task<DefaultResponse> ChangePasswordAsync(ChangePasswordRequest changePasswordData);
         Task<List<ApplicationUser>> GetStudents(IEnumerable<string> ids);
-        Task<BaseResponse<List<ApplicationUser>>> GetStudents();
+        Task<BaseResponse<List<StudentDto>>> GetStudents();
         Task<BaseResponse<UserBudgetResponse>> AnswerRound(AnswerRoundDto dto);
         Task<string> GetProfessorId();
         Task<decimal> GetBudgetAsync();

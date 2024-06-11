@@ -1,5 +1,6 @@
 ﻿using Application.Dtos.Game;
 using Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASP.NET_Core_Template.Controllers;
@@ -14,6 +15,7 @@ public class GameController : ControllerBase
         _svc = svc;
     }
     [HttpPost]
+    [Authorize]
     [Route("/create-game")]
     public async Task<ActionResult> CreateGameAsync(GameDto game)
     {
@@ -22,6 +24,7 @@ public class GameController : ControllerBase
     }   
     
     [HttpGet]
+    [Authorize]
     [Route("/get-games")]
     public async Task<ActionResult> GetGamesAsync()
     {
@@ -30,6 +33,7 @@ public class GameController : ControllerBase
     }  
     
     [HttpGet]
+    [Authorize]
     [Route("/get-game")]
     public async Task<ActionResult> GetGameByIdAsync(int id)
     {
