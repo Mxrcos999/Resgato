@@ -27,7 +27,9 @@ public class GameInformation
     public bool AnsweredRound { get; set; }
     public int CurrentRound { get; set; }
     public int TotalCatsMale { get; set; }
+    public int TotalCatsMaleCastrated { get; set; }
     public int TotalCatsFemale { get; set; }
+    public int TotalCatsFemaleCastrated { get; set; }
     public decimal BudgetUser { get; set; }
     public int TotalStudent { get; set; }
     public IEnumerable<StudentDto> StudentDtos { get; set; }
