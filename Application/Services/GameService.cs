@@ -13,6 +13,7 @@ public interface IGameService
     Task<GameInformation> GetInformationGame(int id);
     Task<IEnumerable<Players>> GetPlayers(int id);
     Task<GetGameResult> GetResultsAsync(int gameId);
+    Task<bool> FinishGame(int id);
 }
 
 public class GameService : IGameService
@@ -42,6 +43,7 @@ public class GameService : IGameService
         var sortedRounds = dto.Round
             .OrderBy(x => Math.Abs((x.Deadline - today).Ticks))
             .ToList();
+
         var rounds = new List<Round>();
 
         for (int i = 0; i < sortedRounds.Count; i++)
@@ -71,6 +73,17 @@ public class GameService : IGameService
         };
 
         await gameRep.AddAsync(game);
+
+        return true;
+    }
+
+    public async Task<bool> FinishGame(int id)
+    {
+        var game = (await gameRepo.GetAllGame()).Where(x => x.Id == id).FirstOrDefault();
+
+        game.Concluded = true;  
+
+        await gameRep.UpdateAsync(game);
 
         return true;
     }
@@ -114,16 +127,22 @@ public class GameService : IGameService
             return null;
 
         var settingList = (await settingRep.GetAllByIdAsync()).ToList();
+        var currentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound;
+
+        var answarRound = (await GetResultsAsync(id)).Rounds.Where(x => x.RoundNumber == currentRound).FirstOrDefault();
+        var answared = answarRound is null ? false : true;
 
         var gameDto = new GameInformation()
         {
             BudgetUser = budget,
             GameName = game.GameName,
+            AnsweredRound = answared,
+            GameConcluded = game.Concluded,
             Id = id,
             TotalCatsFemale = settingList.Where(x => x.Gender == "Femea").FirstOrDefault().CatsQuantity,
             TotalCatsMale = settingList.Where(x => x.Gender == "MACHO").FirstOrDefault().CatsQuantity,
             TotalStudent = game.Students.Count,
-            CurrentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound,
+            CurrentRound = currentRound,
             StudentDtos = game.Students.Select(x => new StudentDto
             {
                 Email = x.Email,

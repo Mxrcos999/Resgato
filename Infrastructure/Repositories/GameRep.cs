@@ -29,6 +29,7 @@ public class GameRep : IGameRep
                     select new Game
                     {
                         Id = game.Id,
+                        Concluded = game.Concluded,
                         GameName = game.GameName,
                         Students = game.Students,
                         Rounds = game.Rounds,

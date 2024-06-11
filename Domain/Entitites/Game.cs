@@ -7,4 +7,5 @@ public sealed class Game
     public string GameName { get; set; }
     public string ProfessorEmail { get; set; }
     public ICollection<Round> Rounds { get; set; }
+    public bool Concluded { get; set; }
 }

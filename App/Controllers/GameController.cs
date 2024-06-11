@@ -21,6 +21,15 @@ public class GameController : ControllerBase
     {
         await _svc.AddGame(game);
         return Ok();
+    }   
+    
+    [HttpPatch]
+    [Authorize]
+    [Route("/finish-game")]
+    public async Task<ActionResult> FinishGameAsync(int gameId)
+    {
+        await _svc.FinishGame(gameId);
+        return Ok();
     }     
     
     [HttpGet]

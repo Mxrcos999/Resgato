@@ -23,6 +23,8 @@ public class GameInformation
 {
     public int Id { get; set; }
     public string GameName { get; set; }
+    public bool GameConcluded { get; set; }
+    public bool AnsweredRound { get; set; }
     public int CurrentRound { get; set; }
     public int TotalCatsMale { get; set; }
     public int TotalCatsFemale { get; set; }
