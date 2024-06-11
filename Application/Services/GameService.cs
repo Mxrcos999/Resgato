@@ -60,6 +60,7 @@ public class GameService : IGameService
 
         var game = new Game()
         {
+            GameName = dto.GameName,
             ProfessorEmail = professor,
             Rounds = rounds,
             Students = students,
@@ -77,6 +78,7 @@ public class GameService : IGameService
                    {
                        Id = gamee.Id,
                        TotalStudent = gamee.Students.Count,
+                       GameName = gamee.GameName,
                        ProfessorId = gamee.Id,
 
                        Round = gamee.Rounds.Select(x => new Dtos.Round.GetRoundDto()
@@ -112,6 +114,7 @@ public class GameService : IGameService
         var gameDto = new GameInformation()
         {
             BudgetUser = budget,
+            GameName = game.GameName,
             Id = id,
             TotalCatsFemale = settingList.Where(x => x.Gender == "Femea").FirstOrDefault().CatsQuantity,
             TotalCatsMale = settingList.Where(x => x.Gender == "MACHO").FirstOrDefault().CatsQuantity,

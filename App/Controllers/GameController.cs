@@ -21,7 +21,16 @@ public class GameController : ControllerBase
     {
         await _svc.AddGame(game);
         return Ok();
-    }   
+    }     
+    
+    //[HttpPatch]
+    //[Authorize]
+    //[Route("/update-game")]
+    //public async Task<ActionResult> PutGameAsync(GameDto game)
+    //{
+    //    await _svc.AddGame(game);
+    //    return Ok();
+    //}   
     
     [HttpGet]
     [Authorize]

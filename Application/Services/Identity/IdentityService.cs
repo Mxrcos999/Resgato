@@ -99,6 +99,18 @@ namespace Application.Services.Identity
 
         public async Task<DefaultResponse> AddStudentUser(CreateStudentUserRequest userData)
         {
+            var settingMale = new Settings
+            {
+                CatsQuantity = 200,
+                Gender = "MACHO"
+            };
+
+            var settingFemale = new Settings
+            {
+                CatsQuantity = 200,
+                Gender = "Femea"
+            };
+
             var user = new ApplicationUser()
             {
                 UserName = userData.Email,
@@ -109,7 +121,11 @@ namespace Application.Services.Identity
                 Name = userData.Name,
                 StudentCode = userData.StudentCode,
                 Budget = 10000m,
-               
+                Setting = new List<Settings>()
+                {
+                    settingMale,
+                    settingFemale,
+                }
 
             };
 

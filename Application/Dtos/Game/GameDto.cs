@@ -6,6 +6,7 @@ namespace Application.Dtos.Game;
 public class GetGameDto
 {
     public int Id { get; set; }
+    public string GameName { get; set; }
     public int ProfessorId { get; set; }
     public int TotalStudent { get; set; }
     public IEnumerable<StudentDto> Students { get; set; }
@@ -13,6 +14,7 @@ public class GetGameDto
 }
 public class GameDto
 {
+    public string GameName { get; set; }
     public IEnumerable<string> StudentsId { get; set; }
     public IEnumerable<RoundDto> Round { get; set; }
 }
@@ -20,6 +22,7 @@ public class GameDto
 public class GameInformation
 {
     public int Id { get; set; }
+    public string GameName { get; set; }
     public int CurrentRound { get; set; }
     public int TotalCatsMale { get; set; }
     public int TotalCatsFemale { get; set; }
