@@ -25,6 +25,7 @@ namespace Infrastructure.Context
         public DbSet<Settings> Settings { get; set; }
         public DbSet<Round> Round { get; set; }
         public DbSet<Game> Game { get; set; }
+        public DbSet<Answers> Answers { get; set; }
         public DbSet<GameStudent> GameStudent { get; set; }
     }
 }

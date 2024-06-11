@@ -30,6 +30,7 @@ namespace ASP.NET_Core_Template.Ioc
             services.AddScoped<IGameRep, GameRep>();
             services.AddScoped<ISettingService, SettingService>();
             services.AddScoped<ISettingRep, SettingRep>();
+            services.AddScoped<IAnswersService, AnswersService>();
 
             services.AddCors(options =>
             {

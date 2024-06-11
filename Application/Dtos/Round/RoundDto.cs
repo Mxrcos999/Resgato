@@ -14,6 +14,7 @@ public class GetRoundDto
 
 public class AnswerRoundDto
 {
+    public int GameId { get; set; }
     public int QtdMaleCastrate { get; set; }
     public int QtdFemaleCastrate { get; set; }
     public DateTime DateCastration { get; set; }

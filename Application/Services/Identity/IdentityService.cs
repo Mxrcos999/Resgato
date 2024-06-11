@@ -37,8 +37,12 @@ namespace Application.Services.Identity
         private readonly string _userId;
 
         private readonly IBaseRepository<Professor> professorRep;
+        private readonly IBaseRepository<Answers> AnswarRep;
+        private readonly IGameRep gameRep;
+        private readonly IAnswersService answerSvc;
+
         private readonly IBaseRepository<PreventionAction> preventionRep;
-        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep, ISettingRep settingRep, IBaseRepository<PreventionAction> preventionRep)
+        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep, ISettingRep settingRep, IBaseRepository<PreventionAction> preventionRep, IBaseRepository<Answers> answarRep, IAnswersService answerSvc, IGameRep gameRep)
         {
             _context = context;
             _singInManager = signInManager;
@@ -49,6 +53,9 @@ namespace Application.Services.Identity
             this.professorRep = professorRep;
             this.settingRep = settingRep;
             this.preventionRep = preventionRep;
+            AnswarRep = answarRep;
+            this.answerSvc = answerSvc;
+            this.gameRep = gameRep;
         }
 
         public async Task<BaseResponse<List<StudentDto>>> GetStudents()
@@ -440,6 +447,7 @@ namespace Application.Services.Identity
             }
 
             var femaleSetting = settingList.FirstOrDefault(x => x.Gender == "Femea");
+
             if (femaleSetting != null)
             {
                 femaleSetting.CatsQuantity -= (dto.QtdFemaleCastrate);
@@ -449,9 +457,11 @@ namespace Application.Services.Identity
             user.Setting = settingList;
 
             user.Budget -= total;
+            var round = (await gameRep.GetAllGame()).Where(x => x.Id == dto.GameId).FirstOrDefault().Rounds.Where(x => x.Active == true).FirstOrDefault();
+
+            var result = await answerSvc.CreateAnswer(dto, round.CurrentRound);
 
             await _userManager.UpdateAsync(user);
-
 
             var response = new BaseResponse<UserBudgetResponse>();
             response.Data = new UserBudgetResponse() 
@@ -461,6 +471,7 @@ namespace Application.Services.Identity
                 TotalPopulation = totalPopulation,
                 TotalPopulationCastrate = dto.QtdMaleCastrate + dto.QtdMaleShelter,
             };
+
             return response;
         }
         public async Task<DefaultResponse> ValidateUsernameAsync(string email)
