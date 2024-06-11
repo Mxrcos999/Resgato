@@ -8,7 +8,7 @@ namespace Application.Services;
 
 public interface IAnswersService
 {
-    Task<bool> CreateAnswer(AnswerRoundDto dto, int currentRound);
+    Task<bool> CreateAnswer(AnswerRoundDto dto, int currentRound, ResultRound resultRound, DateTime deadLine);
 }
 public class AnswersService : IAnswersService
 {
@@ -23,7 +23,7 @@ public class AnswersService : IAnswersService
         _userId = _context._contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     }
-    public async Task<bool> CreateAnswer(AnswerRoundDto dto, int currentRound)
+    public async Task<bool> CreateAnswer(AnswerRoundDto dto, int currentRound, ResultRound resultRound, DateTime deadLine)
     {
         var answer = new Answers()
         {
@@ -32,9 +32,14 @@ public class AnswersService : IAnswersService
             DateCastration = dto.DateCastration,
             QuantityFemaleCastrate = dto.QtdFemaleCastrate,
             QuantityMaleCastrate = dto.QtdMaleCastrate,
+            DeadLine = deadLine,
             QuantityFemaleShelter = dto.QtdFamaleShelter,
             QuantityMaleShelter = dto.QtdMaleShelter,
             GameId = dto.GameId,
+            TotalPopulation = resultRound.TotalPopulation,
+            TotalPopulationCastrated = resultRound.TotalPopulationCastrated,
+            TotalPopulationFemaleCastrated = resultRound.TotalPopulationCastrated,
+            TotalPopulationMaleCastrated = resultRound.TotalPopulationMaleCastrated,
         };
 
         await baseRepository.AddAsync(answer);

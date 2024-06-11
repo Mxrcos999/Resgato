@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20240611110751_AddPropsAEntity")]
+    partial class AddPropsAEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,9 +52,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("DateCastration")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("DeadLine")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("GameId")

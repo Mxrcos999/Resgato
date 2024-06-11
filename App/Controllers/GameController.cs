@@ -23,15 +23,6 @@ public class GameController : ControllerBase
         return Ok();
     }     
     
-    //[HttpPatch]
-    //[Authorize]
-    //[Route("/update-game")]
-    //public async Task<ActionResult> PutGameAsync(GameDto game)
-    //{
-    //    await _svc.AddGame(game);
-    //    return Ok();
-    //}   
-    
     [HttpGet]
     [Authorize]
     [Route("/get-games")]
@@ -68,7 +59,7 @@ public class GameController : ControllerBase
     [HttpGet("/get-answers")]
     public async Task<ActionResult> GetAnswer(int id)
     {
-        var result = await _svc.GetPlayers(id);
+        var result = await _svc.GetResultsAsync(id);
 
         if(result is null)
             return NotFound();

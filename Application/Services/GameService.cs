@@ -1,5 +1,5 @@
 ﻿using Application.Dtos.Game;
-using Application.Dtos.Prevention;
+using Application.Dtos.Round;
 using Application.Services.Identity;
 using Domain.Entitites;
 using Infrastructure.Repositories;
@@ -12,23 +12,26 @@ public interface IGameService
     Task<IEnumerable<GetGameDto>> GetGame();
     Task<GameInformation> GetInformationGame(int id);
     Task<IEnumerable<Players>> GetPlayers(int id);
+    Task<GetGameResult> GetResultsAsync(int gameId);
 }
 
 public class GameService : IGameService
 {
     private readonly IBaseRepository<Game> gameRep;
     private readonly IBaseRepository<Professor> professorRep;
+    private readonly IBaseRepository<Answers> resultRep;
     private readonly ISettingRep settingRep;
     private readonly IGameRep gameRepo;
     private readonly IIdentityService userRep;
 
-    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep)
+    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep, IBaseRepository<Answers> resultRep)
     {
         this.gameRep = gameRep;
         this.professorRep = professorRep;
         this.userRep = userRep;
         this.gameRepo = gameRepo;
         this.settingRep = settingRep;
+        this.resultRep = resultRep;
     }
 
     public async Task<bool> AddGame(GameDto dto)
@@ -44,7 +47,7 @@ public class GameService : IGameService
         for (int i = 0; i < sortedRounds.Count; i++)
         {
             var active = false;
-            if(i + 1 == 1)
+            if (i + 1 == 1)
                 active = true;
 
             var round = new Round()
@@ -56,7 +59,7 @@ public class GameService : IGameService
 
             rounds.Add(round);
         }
-     
+
         var students = await userRep.GetStudents(dto.StudentsId);
 
         var game = new Game()
@@ -88,13 +91,13 @@ public class GameService : IGameService
                            Deadline = x.Deadline,
                            CurrentRound = x.CurrentRound,
                            Active = x.Active
-                           
+
                        }),
                        Students = gamee.Students.Select(x => new StudentDto()
                        {
                            Email = x.Email,
                            Id = x.Id,
-                           Name = x.Name,   
+                           Name = x.Name,
                            StudentCode = x.StudentCode
                        }).ToList(),
                    };
@@ -132,20 +135,20 @@ public class GameService : IGameService
         return gameDto;
     }
 
-    public async Task<IEnumerable<Players>> GetPlayers( int id)
+    public async Task<IEnumerable<Players>> GetPlayers(int id)
     {
         var game = (await gameRepo.GetAllGame()).Where(x => x.Id == id).FirstOrDefault();
 
         var result = (from student in game.Students
-                     select new Players()
-                     {
-                         Name = student.Name,
-                         TotalPopulation = 400,
+                      select new Players()
+                      {
+                          Name = student.Name,
+                          TotalPopulation = 400,
 
 
-                     }).ToList();
+                      }).ToList();
 
-        for(int i = 0; i < result.Count(); i++)
+        for (int i = 0; i < result.Count(); i++)
         {
             result[i].Position = i + 1;
         }
@@ -153,6 +156,40 @@ public class GameService : IGameService
         return result;
     }
 
-    //public async Task<IEnumerable<>> 
+    public async Task<GetGameResult> GetResultsAsync(int gameId)
+    {
+        var game = (await resultRep.GetAllAsync()).Where(x => x.GameId == gameId)
+            .OrderBy(x => Math.Abs((x.DeadLine - DateTime.Today).Ticks))
+            .ToList();
+
+        var gameResult = new GetGameResult();
+        gameResult.Rounds = new List<GetRoundResult>();
+
+        foreach (var currentRound in game)
+        {
+            var roundResult = new GetRoundResult()
+            {
+                QtdMaleShelter = currentRound.QuantityMaleShelter,
+                QtdMaleCastrate = currentRound.QuantityMaleCastrate,
+                QtdFemaleCastrate = currentRound.QuantityFemaleCastrate,
+                DeadLine = currentRound.DeadLine,
+                QtdFamaleShelter = currentRound.QuantityFemaleShelter,
+                DateCastration = currentRound.DateCastration,
+                RoundNumber = currentRound.Round,
+                ResultRound = new ResultRound()
+                {
+                    TotalPopulation = currentRound.TotalPopulation,
+                    TotalPopulationCastrated = currentRound.TotalPopulationCastrated,
+                    TotalPopulationFemaleCastrated = currentRound.TotalPopulationFemaleCastrated,
+                    TotalPopulationMaleCastrated = currentRound.TotalPopulationMaleCastrated
+                }
+            };
+            gameResult.Rounds.Add(roundResult);
+        }
+
+        gameResult.Rounds.OrderBy(x => Math.Abs((x.DeadLine - DateTime.Today).Ticks));
+
+        return gameResult;
+    }
 }
 

@@ -459,7 +459,15 @@ namespace Application.Services.Identity
             user.Budget -= total;
             var round = (await gameRep.GetAllGame()).Where(x => x.Id == dto.GameId).FirstOrDefault().Rounds.Where(x => x.Active == true).FirstOrDefault();
 
-            var result = await answerSvc.CreateAnswer(dto, round.CurrentRound);
+            var resultRound = new ResultRound()
+            {
+                TotalPopulation = totalPopulation,
+                TotalPopulationCastrated = dto.QtdMaleCastrate + dto.QtdFemaleCastrate,
+                TotalPopulationFemaleCastrated = dto.QtdFemaleCastrate,
+                TotalPopulationMaleCastrated = dto.QtdMaleCastrate,
+            };
+
+            var result = await answerSvc.CreateAnswer(dto, round.CurrentRound, resultRound, round.Deadline);
 
             await _userManager.UpdateAsync(user);
 
@@ -469,7 +477,7 @@ namespace Application.Services.Identity
                 Budget = user.Budget,
                 DateCastrate = dto.DateCastration.ToString("dd/MM/yyyy"),
                 TotalPopulation = totalPopulation,
-                TotalPopulationCastrate = dto.QtdMaleCastrate + dto.QtdMaleShelter,
+                TotalPopulationCastrate = resultRound.TotalPopulationCastrated,
             };
 
             return response;
