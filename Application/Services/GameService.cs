@@ -11,6 +11,7 @@ public interface IGameService
     Task<bool> AddGame(GameDto dto);
     Task<IEnumerable<GetGameDto>> GetGame();
     Task<GameInformation> GetInformationGame(int id);
+    Task<IEnumerable<Players>> GetPlayers(int id);
 }
 
 public class GameService : IGameService
@@ -129,6 +130,29 @@ public class GameService : IGameService
         };
 
         return gameDto;
+    }
+
+    public async Task<IEnumerable<Players>> GetPlayers( int id)
+    {
+        var game = (await gameRepo.GetAllGame()).Where(x => x.Id == id).FirstOrDefault();
+
+        var result = (from student in game.Students
+                     select new Players()
+                     {
+                         Name = student.Name,
+                         TotalPopulation = 400,
+
+
+                     }).ToList();
+
+        for(int i = 0; i < result.Count(); i++)
+        {
+            result[i].Position = i + 1;
+        }
+
+        return result;
+
+        
     }
 }
 

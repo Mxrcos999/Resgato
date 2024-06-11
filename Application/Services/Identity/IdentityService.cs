@@ -430,6 +430,7 @@ namespace Application.Services.Identity
             var total = maleCastrationsValue + femaleCastrationsValue + maleShelterValue + femaleShelterValue;
 
             var settingList = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUser.Id == _userId).ToList();
+            var totalPopulation = settingList.Sum(x => x.CatsQuantity);
 
             var maleSetting = settingList.FirstOrDefault(x => x.Gender == "MACHO");
             if (maleSetting != null)
@@ -453,7 +454,13 @@ namespace Application.Services.Identity
 
 
             var response = new BaseResponse<UserBudgetResponse>();
-            response.Data = new UserBudgetResponse() { Budget = user.Budget };
+            response.Data = new UserBudgetResponse() 
+            { 
+                Budget = user.Budget,
+                DateCastrate = dto.DateCastration.ToString("dd/MM/yyyy"),
+                TotalPopulation = totalPopulation,
+                TotalPopulationCastrate = dto.QtdMaleCastrate + dto.QtdMaleShelter,
+            };
             return response;
         }
         public async Task<DefaultResponse> ValidateUsernameAsync(string email)
@@ -520,4 +527,8 @@ namespace Application.Services.Identity
 public class UserBudgetResponse
 {
     public decimal Budget { get; set; }
+    public int TotalPopulation { get; set; }
+    public int TotalPopulationCastrate { get; set; }
+    public string DateCastrate { get; set; }
+
 }

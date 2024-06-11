@@ -43,3 +43,10 @@ public class PassRound
 {
     public int Id { get; set; }
 }
+
+public class Players
+{
+    public string Name { get; set; }
+    public int Position { get; set; }
+    public int TotalPopulation { get; set; }
+}

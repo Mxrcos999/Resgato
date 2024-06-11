@@ -53,4 +53,15 @@ public class GameController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("/get-players")]
+    public async Task<ActionResult> GetPlayers(int id)
+    {
+        var result = await _svc.GetPlayers(id);
+
+        if(result is null)
+            return NotFound();
+
+        return Ok(result);
+    }
 }
