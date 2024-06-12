@@ -23,6 +23,7 @@ public class GameInformation
 {
     public int Id { get; set; }
     public string GameName { get; set; }
+    public string Name { get; set; }
     public bool GameConcluded { get; set; }
     public bool AnsweredRound { get; set; }
     public int CurrentRound { get; set; }
@@ -33,7 +34,6 @@ public class GameInformation
     public int TotalCatsFemaleCastrated { get; set; }
     public decimal BudgetUser { get; set; }
     public int TotalStudent { get; set; }
-    public IEnumerable<StudentDto> StudentDtos { get; set; }
 }
 
 public class StudentDto

@@ -178,6 +178,7 @@ public class GameService : IGameService
         {
             BudgetUser = budget,
             GameName = game.GameName,
+            Name = settingList.ApplicationUser.Name,
             AnsweredRound = answared,
             GameConcluded = game.Concluded,
             Id = id,
@@ -188,12 +189,7 @@ public class GameService : IGameService
             TotalCatsMale = Male - totalMaleCastrate,
             TotalStudent = game.Students.Count,
             CurrentRound = currentRound,
-            StudentDtos = game.Students.Select(x => new StudentDto
-            {
-                Email = x.Email,
-                Name = x.Name,
-                StudentCode = x.StudentCode
-            })
+            
         };
 
         return gameDto;
