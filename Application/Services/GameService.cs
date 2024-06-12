@@ -170,10 +170,22 @@ public class GameService : IGameService
 
         var currentRound = game.Rounds.Where(x => x.Active == true).FirstOrDefault().CurrentRound;
 
-        var answarRound = (await GetResultsAsync(id)).FirstOrDefault().Rounds;
+        var answarRound = (await GetResultsAsync(id))?.FirstOrDefault()?.Rounds ?? null;
         var answared = answarRound is null ? false : true;
-        var totalMaleCastrate = answarRound.Sum(x => x.QtdMaleCastrate);
-        var totalFemaleCastrate = answarRound.Sum(x => x.QtdFemaleCastrate);
+        var totalMaleCastrate = 0;
+        var totalFemaleCastrate = 0;
+        if (answarRound is null)
+        {
+            totalMaleCastrate = 0;
+            totalFemaleCastrate = 0;
+        }
+        else
+        {
+            totalMaleCastrate = answarRound.Sum(x => x.QtdMaleCastrate);
+            totalFemaleCastrate = answarRound.Sum(x => x.QtdFemaleCastrate);
+        }
+       
+     
         var Male = gameSettingsCat.Where(x => x.Gender == "Macho").Select(x => x.CatsQuantity).FirstOrDefault();
         var Female = gameSettingsCat.Where(x => x.Gender == "Femea").Select(x => x.CatsQuantity).FirstOrDefault();
 
