@@ -12,7 +12,7 @@ public interface IGameService
     Task<IEnumerable<GetGameDto>> GetGame();
     Task<GameInformation> GetInformationGame(int id);
     Task<IEnumerable<Players>> GetPlayers(int id);
-    Task<GetGameResult> GetResultsAsync(int gameId);
+    Task<List<GetGameResult>> GetResultsAsync(int gameId);
     Task<bool> FinishGame(int id);
     Task<GetGameResult> GetResultsByIdAsync(int gameId, string userId);
 }
@@ -24,11 +24,12 @@ public class GameService : IGameService
     private readonly IBaseRepository<SettingCat> settingCatRep;
     private readonly IBaseRepository<Professor> professorRep;
     private readonly IBaseRepository<Answers> resultRep;
+    private readonly IAnswerRep answerRep;
     private readonly ISettingRep settingRep;
     private readonly IGameRep gameRepo;
     private readonly IIdentityService userRep;
 
-    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep, IBaseRepository<Answers> resultRep, IBaseRepository<Settings> settingsRep, IBaseRepository<SettingCat> settingCatRep)
+    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep, IBaseRepository<Answers> resultRep, IBaseRepository<Settings> settingsRep, IBaseRepository<SettingCat> settingCatRep, IAnswerRep answerRep)
     {
         this.gameRep = gameRep;
         this.professorRep = professorRep;
@@ -38,6 +39,7 @@ public class GameService : IGameService
         this.resultRep = resultRep;
         this.settingsRep = settingsRep;
         this.settingCatRep = settingCatRep;
+        this.answerRep = answerRep;
     }
 
     public async Task<bool> AddGame(GameDto dto)
@@ -108,9 +110,10 @@ public class GameService : IGameService
                     },
                 }
             };
+
+            settingsRep.AddAsync(setting);
         }
 
-        settingsRep.AddAsync(setting);
     }
 
     public async Task<bool> FinishGame(int id)
@@ -126,7 +129,7 @@ public class GameService : IGameService
 
     public async Task<IEnumerable<GetGameDto>> GetGame()
     {
-        var game = from gamee in await gameRepo.GetAllGame()
+        var game = from gamee in (await gameRepo.GetAllByIdGame())
                    select new GetGameDto()
                    {
                        Id = gamee.Id,
@@ -167,7 +170,7 @@ public class GameService : IGameService
 
         var currentRound = game.Rounds.Where(x => x.Active == true).FirstOrDefault().CurrentRound;
 
-        var answarRound = (await GetResultsAsync(id)).Rounds;
+        var answarRound = (await GetResultsAsync(id)).FirstOrDefault().Rounds;
         var answared = answarRound is null ? false : true;
         var totalMaleCastrate = answarRound.Sum(x => x.QtdMaleCastrate);
         var totalFemaleCastrate = answarRound.Sum(x => x.QtdFemaleCastrate);
@@ -217,38 +220,49 @@ public class GameService : IGameService
         return result;
     }
 
-    public async Task<GetGameResult> GetResultsAsync(int gameId)
+    public async Task<List<GetGameResult>> GetResultsAsync(int gameId)
     {
-        var game = (await resultRep.GetAllAsync()).Where(x => x.GameId == gameId)
+        var answersList = (await answerRep.GetAllAnswer()).Where(x => x.GameId == gameId)
             .OrderBy(x => Math.Abs((x.DeadLine - DateTime.Today).Ticks))
             .ToList();
 
-        var gameResult = new GetGameResult();
-        gameResult.Rounds = new List<GetRoundResult>();
-
-        foreach (var currentRound in game)
+        var groupedByPlayer = answersList.GroupBy(x => x.ApplicationUser.Name);
+        var gameResult = new List<GetGameResult>();
+        foreach (var currentGroup in groupedByPlayer)
         {
-            var roundResult = new GetRoundResult()
+            var gamee = new GetGameResult()
             {
-                QtdMaleShelter = currentRound.QuantityMaleShelter,
-                QtdMaleCastrate = currentRound.QuantityMaleCastrate,
-                QtdFemaleCastrate = currentRound.QuantityFemaleCastrate,
-                DeadLine = currentRound.DeadLine,
-                QtdFamaleShelter = currentRound.QuantityFemaleShelter,
-                DateCastration = currentRound.DateCastration,
-                RoundNumber = currentRound.Round,
-                ResultRound = new ResultRound()
-                {
-                    TotalPopulation = currentRound.TotalPopulation,
-                    TotalPopulationCastrated = currentRound.TotalPopulationCastrated,
-                    TotalPopulationFemaleCastrated = currentRound.TotalPopulationFemaleCastrated,
-                    TotalPopulationMaleCastrated = currentRound.TotalPopulationMaleCastrated
-                }
+                Name = currentGroup.Key,
+                Rounds = new List<GetRoundResult>()
             };
-            gameResult.Rounds.Add(roundResult);
+
+            foreach (var currentRound in currentGroup)
+            {
+                var roundResult = new GetRoundResult()
+                {
+                    QtdMaleShelter = currentRound.QuantityMaleShelter,
+                    QtdMaleCastrate = currentRound.QuantityMaleCastrate,
+                    QtdFemaleCastrate = currentRound.QuantityFemaleCastrate,
+                    DeadLine = currentRound.DeadLine,
+                    QtdFamaleShelter = currentRound.QuantityFemaleShelter,
+                    DateCastration = currentRound.DateCastration,
+                    RoundNumber = currentRound.Round,
+                    ResultRound = new ResultRound()
+                    {
+                        TotalPopulation = currentRound.TotalPopulation,
+                        TotalPopulationCastrated = currentRound.TotalPopulationCastrated,
+                        TotalPopulationFemaleCastrated = currentRound.TotalPopulationFemaleCastrated,
+                        TotalPopulationMaleCastrated = currentRound.TotalPopulationMaleCastrated
+                    }
+                };
+
+                gamee.Rounds.Add(roundResult);
+            }
+
+            gameResult.Add(gamee);
+
         }
 
-        gameResult.Rounds.OrderBy(x => Math.Abs((x.DeadLine - DateTime.Today).Ticks));
 
         return gameResult;
     } 
@@ -260,6 +274,7 @@ public class GameService : IGameService
             .ToList();
 
         var gameResult = new GetGameResult();
+        gameResult.Name = await userRep.GetUserNameAsync(userId);
         gameResult.Rounds = new List<GetRoundResult>();
 
         foreach (var currentRound in game)

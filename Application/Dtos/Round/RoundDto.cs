@@ -32,6 +32,7 @@ public class ResultRound
 
 public class GetGameResult 
 {
+    public string Name { get; set; }
     public ICollection<GetRoundResult> Rounds { get; set;}
 }
 

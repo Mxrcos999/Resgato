@@ -31,6 +31,7 @@ namespace ASP.NET_Core_Template.Ioc
             services.AddScoped<ISettingService, SettingService>();
             services.AddScoped<ISettingRep, SettingRep>();
             services.AddScoped<IAnswersService, AnswersService>();
+            services.AddScoped<IAnswerRep, AnswerRep>();
 
             services.AddCors(options =>
             {

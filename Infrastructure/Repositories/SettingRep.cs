@@ -6,7 +6,7 @@ namespace Infrastructure.Repositories;
 
 public interface ISettingRep
 {
-    Task<IEnumerable<Settings>> GetAllAsync();
+    Task<IEnumerable<Settings>> GetAllAsync(int gameId, string userId);
     Task<IEnumerable<Settings>> GetAllByIdAsync(int gameId);
 }
 public class SettingRep : ISettingRep
@@ -21,12 +21,13 @@ public class SettingRep : ISettingRep
 
     }
 
-    public async Task<IEnumerable<Settings>> GetAllAsync()
+    public async Task<IEnumerable<Settings>> GetAllAsync(int gameId, string userId)
     {
         var result = from Settings setting in _context.Settings
                      .Include(x => x.ApplicationUser)
                      .Include(x => x.Game)
                      .Include(x => x.SettingCat)
+                     .Where(x => x.GameId == gameId && x.ApplicationUser.Id == userId)
                      select new Settings()
                      {
                          ApplicationUser = setting.ApplicationUser,

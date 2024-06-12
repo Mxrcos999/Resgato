@@ -421,7 +421,7 @@ namespace Application.Services.Identity
 
             var total = maleCastrationsValue + femaleCastrationsValue + maleShelterValue + femaleShelterValue;
 
-            var settingList = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUserId == _userId && x.Game.Id == dto.GameId).FirstOrDefault();
+            var settingList = (await settingRep.GetAllAsync(dto.GameId, _userId)).FirstOrDefault();
 
             var totalPopulation = settingList.SettingCat.Sum(x => x.CatsQuantity);
 
@@ -522,6 +522,12 @@ namespace Application.Services.Identity
             var user = await _userManager.FindByIdAsync(_userId);
 
             return user.Budget;
+        }     
+        public async Task<string> GetUserNameAsync(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            return user.Name;
         }
     }
 }

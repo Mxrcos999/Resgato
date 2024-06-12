@@ -16,6 +16,7 @@ namespace Application.Services.Identity
         Task<DefaultResponse> AddProfessorUser(CreateProfessorUserRequest userData);
         Task<DefaultResponse> DeleteUser(LoginUserRequest email);
         Task<DefaultResponse> PutUser(PutUserRequest userData);
+        Task<string> GetUserNameAsync(string id);
         Task<DefaultResponse> ValidateUsernameAsync(string email);
         Task<DefaultResponse> ValidateEmailAsync(string email);
         Task<DefaultResponse> ChangePasswordAsync(ChangePasswordRequest changePasswordData);
