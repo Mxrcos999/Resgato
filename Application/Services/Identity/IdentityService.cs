@@ -38,11 +38,12 @@ namespace Application.Services.Identity
 
         private readonly IBaseRepository<Professor> professorRep;
         private readonly IBaseRepository<Answers> AnswarRep;
+        private readonly IBaseRepository<Settings> Settingrepository;
         private readonly IGameRep gameRep;
         private readonly IAnswersService answerSvc;
 
         private readonly IBaseRepository<PreventionAction> preventionRep;
-        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep, ISettingRep settingRep, IBaseRepository<PreventionAction> preventionRep, IBaseRepository<Answers> answarRep, IAnswersService answerSvc, IGameRep gameRep)
+        public IdentityService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, ISessionService session, IBaseRepository<Professor> professorRep, ISettingRep settingRep, IBaseRepository<PreventionAction> preventionRep, IBaseRepository<Answers> answarRep, IAnswersService answerSvc, IGameRep gameRep, IBaseRepository<Settings> settingrepository)
         {
             _context = context;
             _singInManager = signInManager;
@@ -56,6 +57,7 @@ namespace Application.Services.Identity
             AnswarRep = answarRep;
             this.answerSvc = answerSvc;
             this.gameRep = gameRep;
+            Settingrepository = settingrepository;
         }
 
         public async Task<BaseResponse<List<StudentDto>>> GetStudents()
@@ -419,7 +421,8 @@ namespace Application.Services.Identity
 
             var total = maleCastrationsValue + femaleCastrationsValue + maleShelterValue + femaleShelterValue;
 
-            var settingList = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUserId == _userId && x.GameId == dto.GameId).FirstOrDefault();
+            var settingList = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUserId == _userId && x.Game.Id == dto.GameId).FirstOrDefault();
+
             var totalPopulation = settingList.SettingCat.Sum(x => x.CatsQuantity);
 
             var maleSetting = settingList.SettingCat.FirstOrDefault(x => x.Gender == "Macho");
@@ -436,10 +439,9 @@ namespace Application.Services.Identity
                 femaleSetting.CatsQuantity -= (dto.QtdFemaleCastrate);
                 femaleSetting.CatsQuantity -= (dto.QtdFamaleShelter);
             }
-
-            user.Budget -= total;
-            var round = (await gameRep.GetAllGame()).Where(x => x.Id == dto.GameId).FirstOrDefault().Rounds.Where(x => x.Active == true).FirstOrDefault();
-
+            var gamee = (await gameRep.GetAllGame()).Where(x => x.Id == dto.GameId);
+            var round = gamee.FirstOrDefault().Rounds.Where(x => x.Active == true).FirstOrDefault();
+            gamee.FirstOrDefault().Settings.BudgetGame -= total;
             var resultRound = new ResultRound()
             {
                 TotalPopulation = totalPopulation,
@@ -450,7 +452,7 @@ namespace Application.Services.Identity
 
             var result = await answerSvc.CreateAnswer(dto, round.CurrentRound, resultRound, round.Deadline);
 
-            await _userManager.UpdateAsync(user);
+            await Settingrepository.UpdateAsync(gamee.FirstOrDefault().Settings) ;
 
             var response = new BaseResponse<UserBudgetResponse>();
             response.Data = new UserBudgetResponse() 

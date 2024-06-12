@@ -26,6 +26,7 @@ public class GameRep : IGameRep
                     .Include(x => x.Rounds)
                     .Include(x => x.Students)
                     .Include(x => x.Rounds)
+                    .Include(x => x.Settings)
                     select new Game
                     {
                         Id = game.Id,
@@ -33,6 +34,8 @@ public class GameRep : IGameRep
                         GameName = game.GameName,
                         Students = game.Students,
                         Rounds = game.Rounds,
+                        SettingId = game.SettingId,
+                        Settings = game.Settings,
                         ProfessorEmail = game.ProfessorEmail,
 
                     };

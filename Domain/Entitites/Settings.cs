@@ -21,4 +21,6 @@ public class SettingCat
     public int Id { get; set; }
     public int CatsQuantity { get; set; }
     public string Gender { get; set; }
+    public Settings Settings { get; set; }
+    public int SettingsId { get; set; }
 }

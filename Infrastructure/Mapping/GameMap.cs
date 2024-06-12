@@ -8,8 +8,8 @@ public class GameMap : IEntityTypeConfiguration<Game>
 {
     public void Configure(EntityTypeBuilder<Game> builder)
     {
-        //builder.HasOne(x => x.)
-        //    .WithMany(x => x.Games)
-        //    .HasForeignKey(x => x.Professor);
+        builder.HasOne(x => x.Settings)
+            .WithOne(x => x.Game)
+            .HasForeignKey<Game>(x => x.SettingId);
     }
 }

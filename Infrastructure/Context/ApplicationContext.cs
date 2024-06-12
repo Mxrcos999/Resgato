@@ -18,7 +18,9 @@ namespace Infrastructure.Context
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.ApplyConfiguration(new ApplicationUserMap());
+            builder.ApplyConfiguration(new ApplicationUserMap());     
+            
+            builder.ApplyConfiguration(new GameMap());
 
         }
         public DbSet<PreventionAction> Actions { get; set; }

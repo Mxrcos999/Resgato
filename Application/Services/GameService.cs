@@ -20,13 +20,14 @@ public class GameService : IGameService
 {
     private readonly IBaseRepository<Game> gameRep;
     private readonly IBaseRepository<Settings> settingsRep;
+    private readonly IBaseRepository<SettingCat> settingCatRep;
     private readonly IBaseRepository<Professor> professorRep;
     private readonly IBaseRepository<Answers> resultRep;
     private readonly ISettingRep settingRep;
     private readonly IGameRep gameRepo;
     private readonly IIdentityService userRep;
 
-    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep, IBaseRepository<Answers> resultRep, IBaseRepository<Settings> settingsRep)
+    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep, IBaseRepository<Answers> resultRep, IBaseRepository<Settings> settingsRep, IBaseRepository<SettingCat> settingCatRep)
     {
         this.gameRep = gameRep;
         this.professorRep = professorRep;
@@ -35,6 +36,7 @@ public class GameService : IGameService
         this.settingRep = settingRep;
         this.resultRep = resultRep;
         this.settingsRep = settingsRep;
+        this.settingCatRep = settingCatRep;
     }
 
     public async Task<bool> AddGame(GameDto dto)
@@ -89,6 +91,7 @@ public class GameService : IGameService
             {
                 BudgetGame = 10000m,
                 Game = game,
+                GameId = game.Id,
                 ApplicationUserId = item,
                 SettingCat = new List<SettingCat>()
                 {
@@ -151,21 +154,24 @@ public class GameService : IGameService
 
     public async Task<GameInformation> GetInformationGame(int id)
     {
-        var budget = await userRep.GetBudgetAsync();
 
         var game = (await gameRepo.GetAllGame()).Where(x => x.Id == id).FirstOrDefault();
+
+        var gameSettingsCat = (await settingCatRep.GetAllAsync()).Where(x => x.SettingsId == game.Settings.Id);
         if (game is null)
             return null;
 
         var settingList = (await settingRep.GetAllByIdAsync(id)).FirstOrDefault();
+        var budget = settingList.BudgetGame;
+
         var currentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound;
 
         var answarRound = (await GetResultsAsync(id)).Rounds;
         var answared = answarRound is null ? false : true;
         var totalMaleCastrate = answarRound.Sum(x => x.QtdMaleCastrate);
         var totalFemaleCastrate = answarRound.Sum(x => x.QtdFemaleCastrate);
-        var Male = game.Settings.SettingCat.Where(x => x.Gender == "Macho").Select(x => x.CatsQuantity).FirstOrDefault();
-        var Female = game.Settings.SettingCat.Where(x => x.Gender == "Femea").Select(x => x.CatsQuantity).FirstOrDefault();
+        var Male = gameSettingsCat.Where(x => x.Gender == "Macho").Select(x => x.CatsQuantity).FirstOrDefault();
+        var Female = gameSettingsCat.Where(x => x.Gender == "Femea").Select(x => x.CatsQuantity).FirstOrDefault();
 
         var gameDto = new GameInformation()
         {
