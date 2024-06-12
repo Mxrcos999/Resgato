@@ -206,6 +206,7 @@ public class GameService : IGameService
         var result = (from student in game.Students
                       select new Players()
                       {
+                          Id = student.Id,
                           Name = student.Name,
                           TotalPopulation = 400,
 

@@ -51,6 +51,7 @@ public class PassRound
 
 public class Players
 {
+    public string Id { get; set; }
     public string Name { get; set; }
     public int Position { get; set; }
     public int TotalPopulation { get; set; }
