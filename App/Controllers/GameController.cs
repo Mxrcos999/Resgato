@@ -75,4 +75,16 @@ public class GameController : ControllerBase
 
         return Ok(result);
     }
+
+
+    [HttpGet("/get-answers-by-id")]
+    public async Task<ActionResult> GetAnswer(int gameId, string userId)
+    {
+        var result = await _svc.GetResultsByIdAsync(gameId, userId);
+
+        if (result is null)
+            return NotFound();
+
+        return Ok(result);
+    }
 }

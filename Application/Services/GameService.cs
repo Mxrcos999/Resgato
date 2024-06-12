@@ -14,6 +14,7 @@ public interface IGameService
     Task<IEnumerable<Players>> GetPlayers(int id);
     Task<GetGameResult> GetResultsAsync(int gameId);
     Task<bool> FinishGame(int id);
+    Task<GetGameResult> GetResultsByIdAsync(int gameId, string userId);
 }
 
 public class GameService : IGameService
@@ -164,7 +165,7 @@ public class GameService : IGameService
         var settingList = (await settingRep.GetAllByIdAsync(id)).FirstOrDefault();
         var budget = settingList.BudgetGame;
 
-        var currentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound;
+        var currentRound = game.Rounds.Where(x => x.Active == true).FirstOrDefault().CurrentRound;
 
         var answarRound = (await GetResultsAsync(id)).Rounds;
         var answared = answarRound is null ? false : true;
@@ -180,6 +181,7 @@ public class GameService : IGameService
             AnsweredRound = answared,
             GameConcluded = game.Concluded,
             Id = id,
+            RoundActive = currentRound,
             TotalCatsFemaleCastrated = totalFemaleCastrate,
             TotalCatsMaleCastrated = totalMaleCastrate,
             TotalCatsFemale = Female - totalFemaleCastrate,
@@ -221,6 +223,42 @@ public class GameService : IGameService
     public async Task<GetGameResult> GetResultsAsync(int gameId)
     {
         var game = (await resultRep.GetAllAsync()).Where(x => x.GameId == gameId)
+            .OrderBy(x => Math.Abs((x.DeadLine - DateTime.Today).Ticks))
+            .ToList();
+
+        var gameResult = new GetGameResult();
+        gameResult.Rounds = new List<GetRoundResult>();
+
+        foreach (var currentRound in game)
+        {
+            var roundResult = new GetRoundResult()
+            {
+                QtdMaleShelter = currentRound.QuantityMaleShelter,
+                QtdMaleCastrate = currentRound.QuantityMaleCastrate,
+                QtdFemaleCastrate = currentRound.QuantityFemaleCastrate,
+                DeadLine = currentRound.DeadLine,
+                QtdFamaleShelter = currentRound.QuantityFemaleShelter,
+                DateCastration = currentRound.DateCastration,
+                RoundNumber = currentRound.Round,
+                ResultRound = new ResultRound()
+                {
+                    TotalPopulation = currentRound.TotalPopulation,
+                    TotalPopulationCastrated = currentRound.TotalPopulationCastrated,
+                    TotalPopulationFemaleCastrated = currentRound.TotalPopulationFemaleCastrated,
+                    TotalPopulationMaleCastrated = currentRound.TotalPopulationMaleCastrated
+                }
+            };
+            gameResult.Rounds.Add(roundResult);
+        }
+
+        gameResult.Rounds.OrderBy(x => Math.Abs((x.DeadLine - DateTime.Today).Ticks));
+
+        return gameResult;
+    } 
+    
+    public async Task<GetGameResult> GetResultsByIdAsync(int gameId, string userId)
+    {
+        var game = (await resultRep.GetAllAsync()).Where(x => x.GameId == gameId && x.ApplicationUserId == userId)
             .OrderBy(x => Math.Abs((x.DeadLine - DateTime.Today).Ticks))
             .ToList();
 

@@ -26,6 +26,7 @@ public class GameInformation
     public bool GameConcluded { get; set; }
     public bool AnsweredRound { get; set; }
     public int CurrentRound { get; set; }
+    public int RoundActive { get; set; }
     public int TotalCatsMale { get; set; }
     public int TotalCatsMaleCastrated { get; set; }
     public int TotalCatsFemale { get; set; }
