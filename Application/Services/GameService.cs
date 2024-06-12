@@ -19,13 +19,14 @@ public interface IGameService
 public class GameService : IGameService
 {
     private readonly IBaseRepository<Game> gameRep;
+    private readonly IBaseRepository<Settings> settingsRep;
     private readonly IBaseRepository<Professor> professorRep;
     private readonly IBaseRepository<Answers> resultRep;
     private readonly ISettingRep settingRep;
     private readonly IGameRep gameRepo;
     private readonly IIdentityService userRep;
 
-    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep, IBaseRepository<Answers> resultRep)
+    public GameService(IBaseRepository<Game> gameRep, IBaseRepository<Professor> professorRep, IIdentityService userRep, IGameRep gameRepo, ISettingRep settingRep, IBaseRepository<Answers> resultRep, IBaseRepository<Settings> settingsRep)
     {
         this.gameRep = gameRep;
         this.professorRep = professorRep;
@@ -33,6 +34,7 @@ public class GameService : IGameService
         this.gameRepo = gameRepo;
         this.settingRep = settingRep;
         this.resultRep = resultRep;
+        this.settingsRep = settingsRep;
     }
 
     public async Task<bool> AddGame(GameDto dto)
@@ -73,8 +75,38 @@ public class GameService : IGameService
         };
 
         await gameRep.AddAsync(game);
-
+        CreateSetting(dto, game);
+     
         return true;
+    }
+
+    private void CreateSetting(GameDto dto, Game game)
+    {
+        Settings setting = new Settings();
+        foreach(var item in dto.StudentsId)
+        {
+            setting = new Settings()
+            {
+                BudgetGame = 10000m,
+                Game = game,
+                ApplicationUserId = item,
+                SettingCat = new List<SettingCat>()
+                {
+                    new SettingCat()
+                    {
+                        CatsQuantity = 200,
+                        Gender = "Macho"
+                    },
+                    new SettingCat()
+                    {
+                        CatsQuantity = 200,
+                        Gender = "Femea"
+                    },
+                }
+            };
+        }
+
+        settingsRep.AddAsync(setting);
     }
 
     public async Task<bool> FinishGame(int id)
@@ -97,7 +129,6 @@ public class GameService : IGameService
                        TotalStudent = gamee.Students.Count,
                        GameName = gamee.GameName,
                        ProfessorId = gamee.Id,
-
                        Round = gamee.Rounds.Select(x => new Dtos.Round.GetRoundDto()
                        {
                            Id = x.Id,
@@ -126,11 +157,15 @@ public class GameService : IGameService
         if (game is null)
             return null;
 
-        var settingList = (await settingRep.GetAllByIdAsync()).ToList();
+        var settingList = (await settingRep.GetAllByIdAsync(id)).FirstOrDefault();
         var currentRound = game.Rounds.Where(x => x.Active).FirstOrDefault().CurrentRound;
 
-        var answarRound = (await GetResultsAsync(id)).Rounds.Where(x => x.RoundNumber == currentRound).FirstOrDefault();
+        var answarRound = (await GetResultsAsync(id)).Rounds;
         var answared = answarRound is null ? false : true;
+        var totalMaleCastrate = answarRound.Sum(x => x.QtdMaleCastrate);
+        var totalFemaleCastrate = answarRound.Sum(x => x.QtdFemaleCastrate);
+        var Male = game.Settings.SettingCat.Where(x => x.Gender == "Macho").Select(x => x.CatsQuantity).FirstOrDefault();
+        var Female = game.Settings.SettingCat.Where(x => x.Gender == "Femea").Select(x => x.CatsQuantity).FirstOrDefault();
 
         var gameDto = new GameInformation()
         {
@@ -139,8 +174,10 @@ public class GameService : IGameService
             AnsweredRound = answared,
             GameConcluded = game.Concluded,
             Id = id,
-            TotalCatsFemale = settingList.Where(x => x.Gender == "Femea").FirstOrDefault().CatsQuantity,
-            TotalCatsMale = settingList.Where(x => x.Gender == "MACHO").FirstOrDefault().CatsQuantity,
+            TotalCatsFemaleCastrated = totalFemaleCastrate,
+            TotalCatsMaleCastrated = totalMaleCastrate,
+            TotalCatsFemale = Female - totalFemaleCastrate,
+            TotalCatsMale = Male - totalMaleCastrate,
             TotalStudent = game.Students.Count,
             CurrentRound = currentRound,
             StudentDtos = game.Students.Select(x => new StudentDto

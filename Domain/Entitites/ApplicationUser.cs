@@ -18,6 +18,5 @@ namespace Domain.Entitites
         public IEnumerable<Game> Games { get; set; }    
         public Professor? Professor { get; set; }
         public int? ProfessorId { get; set; }
-        public IEnumerable<Settings> Setting { get; set; }
     }
 }

@@ -15,19 +15,19 @@ public class SettingsController : ControllerBase
         this.settingService = settingService;
     }
 
-    [HttpPost]
-    public async Task<ActionResult> CreateSetting(SettingDto dto)
-    {
-        await settingService.CreateSetting(dto);
+    //[HttpPost]
+    //public async Task<ActionResult> CreateSetting(SettingDto dto)
+    //{
+    //    await settingService.CreateSetting(dto);
 
-        return Ok();
-    }
+    //    return Ok();
+    //}
 
-    [HttpGet]
-    public async Task<ActionResult> GetSetting()
-    {
-        var result = await settingService.GetSetting();
+    //[HttpGet]
+    //public async Task<ActionResult> GetSetting()
+    //{
+    //    var result = await settingService.GetSetting();
 
-        return Ok(result);
-    }
+    //    return Ok(result);
+    //}
 }

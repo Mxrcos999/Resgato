@@ -106,18 +106,6 @@ namespace Application.Services.Identity
 
         public async Task<DefaultResponse> AddStudentUser(CreateStudentUserRequest userData)
         {
-            var settingMale = new Settings
-            {
-                CatsQuantity = 200,
-                Gender = "MACHO"
-            };
-
-            var settingFemale = new Settings
-            {
-                CatsQuantity = 200,
-                Gender = "Femea"
-            };
-
             var user = new ApplicationUser()
             {
                 UserName = userData.Email,
@@ -128,11 +116,6 @@ namespace Application.Services.Identity
                 Name = userData.Name,
                 StudentCode = userData.StudentCode,
                 Budget = 10000m,
-                Setting = new List<Settings>()
-                {
-                    settingMale,
-                    settingFemale,
-                }
 
             };
 
@@ -436,25 +419,23 @@ namespace Application.Services.Identity
 
             var total = maleCastrationsValue + femaleCastrationsValue + maleShelterValue + femaleShelterValue;
 
-            var settingList = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUser.Id == _userId).ToList();
-            var totalPopulation = settingList.Sum(x => x.CatsQuantity);
+            var settingList = (await settingRep.GetAllAsync()).Where(x => x.ApplicationUserId == _userId && x.GameId == dto.GameId).FirstOrDefault();
+            var totalPopulation = settingList.SettingCat.Sum(x => x.CatsQuantity);
 
-            var maleSetting = settingList.FirstOrDefault(x => x.Gender == "MACHO");
+            var maleSetting = settingList.SettingCat.FirstOrDefault(x => x.Gender == "Macho");
             if (maleSetting != null)
             {
                 maleSetting.CatsQuantity -= (dto.QtdMaleCastrate);
                 maleSetting.CatsQuantity -= (dto.QtdMaleShelter);
             }
 
-            var femaleSetting = settingList.FirstOrDefault(x => x.Gender == "Femea");
+            var femaleSetting = settingList.SettingCat.FirstOrDefault(x => x.Gender == "Femea");
 
             if (femaleSetting != null)
             {
                 femaleSetting.CatsQuantity -= (dto.QtdFemaleCastrate);
                 femaleSetting.CatsQuantity -= (dto.QtdFamaleShelter);
             }
-
-            user.Setting = settingList;
 
             user.Budget -= total;
             var round = (await gameRep.GetAllGame()).Where(x => x.Id == dto.GameId).FirstOrDefault().Rounds.Where(x => x.Active == true).FirstOrDefault();
@@ -549,5 +530,6 @@ public class UserBudgetResponse
     public int TotalPopulation { get; set; }
     public int TotalPopulationCastrate { get; set; }
     public string DateCastrate { get; set; }
+    public int NextRound { get; set; }
 
 }
